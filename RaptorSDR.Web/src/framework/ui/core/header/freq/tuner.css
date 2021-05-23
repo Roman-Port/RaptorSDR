@@ -1,0 +1,45 @@
+.rsys_header_tuner {
+    display: flex;
+    flex-direction: row;
+    margin: auto 0;
+}
+
+.rsys_header_tuner_num {
+    color: white;
+    font-size: 24px;
+    width: 14px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 400;
+    position: relative;
+}
+
+.rsys_header_tuner_num_paddle {
+    position:absolute;
+    left:0;
+    right:0;
+    height:50%;
+    opacity:0;
+}
+
+.rsys_header_tuner_num_paddle:hover {
+    opacity:0.4;
+}
+
+.rsys_header_tuner_num_paddle_top {
+    top: 0;
+    background-color: #6cf160;
+}
+
+.rsys_header_tuner_num_paddle_bottom {
+    bottom: 0;
+    background-color: #f16060;
+}
+
+.rsys_header_tuner_dot {
+    color: white;
+    font-size: 24px;
+    width: 8px;
+    text-align: center;
+    pointer-events: none;
+}

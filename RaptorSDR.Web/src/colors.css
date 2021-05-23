@@ -1,0 +1,8 @@
+body {
+    --color-background: black;
+    --color-dialog-bg: #23272A;
+    --color-dialog-dark: #2C2F33;
+    --color-dialog-fg: #99AAB5;
+    --color-accent: #3882dc;
+    --color-accent-light: #589ff5;
+}

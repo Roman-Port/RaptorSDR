@@ -1,0 +1,41 @@
+.rsys_header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    padding: 10px;
+    background-color: #2C2F33;
+    display: flex;
+    flex-direction: row;
+}
+
+.rsys_header_button {
+
+}
+
+.rsys_header_button_clicker {
+    height: 32px;
+    width: 32px;
+    margin-right: 5px;
+    background: #444446;
+    border: 1px solid #5a5c5d;
+    cursor: pointer;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 22px;
+    transition: background-color 100ms cubic-bezier(0.27, 0.97, 0.58, 1);
+}
+
+.rsys_header_button_clicker:hover {
+    background-color: #5a5c5d;
+}
+
+.rsys_header_button_accent .rsys_header_button_clicker {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent-light);
+}
+
+.rsys_header_button_accent .rsys_header_button_clicker:hover {
+    background-color: var(--color-accent-light);
+}

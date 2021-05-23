@@ -1,0 +1,20 @@
+{
+  "name": "{{NAME_DEVELOPER}}.{{NAME_PLUGIN}}.{{NAME_FRONTEND}}",
+  "version": "1.0.0",
+  "description": "RaptorSDR Plugin",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "{{NAME_DEVELOPER}}",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-loader": "^9.1.2",
+    "typescript": "^4.2.4",
+    "webpack": "^5.37.0",
+    "webpack-cli": "^4.7.0"
+  },
+  "dependencies": {
+    "raptorsdr.web.common": "^1.0.0"
+  }
+}

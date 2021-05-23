@@ -1,0 +1,5 @@
+# Exclude user data for RaptorSDR
+UserData
+
+# Exclude build dirs for plugins
+Plugins/*/build

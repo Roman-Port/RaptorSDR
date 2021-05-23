@@ -1,0 +1,19 @@
+/* Play/stop */
+
+.rsys_header_btn_play .rsys_header_button_clicker {
+    background-image:url(icons/play_white.svg);
+}
+
+.rsys_header_btn_stop .rsys_header_button_clicker {
+    background-image: url(icons/stop_white.svg);
+}
+
+/* Audio */
+
+.rsys_header_btn_sound .rsys_header_button_clicker {
+    background-image: url(icons/sound_white.svg);
+}
+
+.rsys_header_btn_mute .rsys_header_button_clicker {
+    background-image: url(icons/mute_white.svg);
+}
