@@ -7,7 +7,7 @@ using System.Text;
 namespace RaptorSDR.Server.Common.DataProviders
 {
     public delegate bool RaptorDataProvider_PermisionCheckFunc(IRaptorSession session);
-    public delegate void RaptorDataProvider_OnChangedEventArgs<T>(T data);
+    public delegate void RaptorDataProvider_OnChangedEventArgs<T>(T data, IRaptorSession session);
 
     public class RaptorPrimitiveDataProvider<T> : IRaptorDataProvider
     {
@@ -31,7 +31,7 @@ namespace RaptorSDR.Server.Common.DataProviders
         private RaptorDataProvider_PermisionCheckFunc permissionCheck;
         private string id;
 
-        public event RaptorDataProvider_OnChangedEventArgs<T> OnChanged;
+        public event RaptorDataProvider_OnChangedEventArgs<T> OnChanging;
 
         public T Value
         {
@@ -39,7 +39,7 @@ namespace RaptorSDR.Server.Common.DataProviders
             set
             {
                 this.value = value;
-                OnChanged?.Invoke(value);
+                OnChanging?.Invoke(value, null);
                 WebNotifyUpdated();
             }
         }
@@ -60,9 +60,9 @@ namespace RaptorSDR.Server.Common.DataProviders
             return this;
         }
 
-        public RaptorPrimitiveDataProvider<T> BindOnChanged(RaptorDataProvider_OnChangedEventArgs<T> callback)
+        public RaptorPrimitiveDataProvider<T> BindOnChanging(RaptorDataProvider_OnChangedEventArgs<T> callback)
         {
-            OnChanged += callback;
+            OnChanging += callback;
             return this;
         }
 
@@ -82,23 +82,35 @@ namespace RaptorSDR.Server.Common.DataProviders
             }
 
             //Attempt to read value
-            if(DeserializeIncoming(message["value"], out T incomingValue))
+            if (!DeserializeIncoming(message["value"], out T incomingValue))
             {
                 //Notify this sender that their change was bad
                 SendAck(client, message, false, "Invalid value.");
                 return;
             }
 
-            //Apply
+            //If for some reason the client has no session, abort. This shouldn't be possible
+            if (client.Session == null)
+                throw new Exception("Unexpected no session for client!");
+
+            //Attempt to apply
             try
             {
-                value = incomingValue;
-                OnChanged?.Invoke(value);
+                OnChanging?.Invoke(incomingValue, client.Session);
+            } catch (RaptorWebException wex)
+            {
+                //Notify the sender that their change was bad
+                SendAck(client, message, false, wex.WebCaption, wex.WebBody);
+                return;
             } catch (Exception ex)
             {
                 //Notify this sender that their change was bad
                 SendAck(client, message, false, "Unknown exception thrown: " + ex.Message + ex.StackTrace);
+                return;
             }
+
+            //Update here
+            value = incomingValue;
 
             //Notify clients of change
             WebNotifyUpdated(client.Session);
@@ -107,12 +119,13 @@ namespace RaptorSDR.Server.Common.DataProviders
             SendAck(client, message, true);
         }
 
-        private void SendAck(IRaptorEndpointClient client, JObject message, bool ok, string error = null)
+        private void SendAck(IRaptorEndpointClient client, JObject message, bool ok, string errorCaption = null, string errorBody = null)
         {
             JObject ack = new JObject();
             ack["ok"] = ok;
             ack["token"] = message.ContainsKey("token") ? message["token"] : null;
-            ack["error"] = error;
+            ack["error_caption"] = errorCaption;
+            ack["error_body"] = errorBody;
             endpointAck.SendTo(client, ack);
         }
 

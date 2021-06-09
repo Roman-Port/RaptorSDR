@@ -7,6 +7,8 @@ namespace RaptorSDR.Server.Common.PluginComponents
 {
     public interface IPluginSource : IPluginComponent
     {
+        IRaptorWebPackage Icon { get; }
+
         void Init(int bufferSize);
         void Start();
         unsafe int Read(Complex* bufferPtr, int count);

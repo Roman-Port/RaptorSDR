@@ -20,7 +20,7 @@ namespace RaptorSDR.Server.Core.Web.HTTP.WebSocket
             outgoingHeaderBuffer = new byte[16];
 
             //Search for the upgrade header
-            if (!ctx.RequestHeaders.ContainsKey("upgrade") || ctx.RequestHeaders["upgrade"].ToLower() != "websocket")
+            if (!IsWebSocket(ctx))
             {
                 ctx.Log(RaptorLogLevel.LOG, "HTTP-WEBSOCK", "Failed to open as websocket: required headers \"upgrade\" is missing or not equal to \"websocket\".");
                 throw new Exception("WebSocket Error");
@@ -40,6 +40,11 @@ namespace RaptorSDR.Server.Core.Web.HTTP.WebSocket
 
             //Log
             ctx.Log(RaptorLogLevel.DEBUG, "HTTP-WEBSOCK", "WebSocket handshake completed successfully.");
+        }
+
+        public static bool IsWebSocket(RaptorHttpContext ctx)
+        {
+            return ctx.RequestHeaders.ContainsKey("upgrade") && ctx.RequestHeaders["upgrade"].ToLower() == "websocket";
         }
 
         private RaptorHttpContext ctx;

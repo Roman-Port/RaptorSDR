@@ -13,9 +13,9 @@ namespace RaptorSDR.Server.Common
         bool RdsDetected { get; set; }
         long FreqOffset { get; set; }
 
+        float AudioSampleRate { get; }
+
         event IRaptorVfo_AudioReconfiguredEventArgs OnAudioReconfigured;
         event IRaptorVfo_AudioEmittedEventArgs OnAudioEmitted;
-
-        void ReportRdsFrame(ulong frame);
     }
 }

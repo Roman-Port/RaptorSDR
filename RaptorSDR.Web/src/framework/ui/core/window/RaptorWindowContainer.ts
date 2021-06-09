@@ -1,8 +1,8 @@
 import RaptorUiUtil from "../../RaptorUiUtil";
 import RaptorWindowView from "./RaptorWindowTab";
-import IRaptorWindow from 'raptorsdr.web.common/src/ui/core/IRaptorWindow';
+import IRaptorWindow from 'RaptorSdk/ui/core/IRaptorWindow';
 import RaptorDomBuilder from "../../RaptorDomBuilder";
-import { RaptorWindowMounting } from "raptorsdr.web.common/src/ui/core/RaptorWindowMounting";
+import { RaptorWindowMounting } from "RaptorSdk/ui/core/RaptorWindowMounting";
 
 require("./window.css");
 
@@ -143,6 +143,13 @@ export default class RaptorWindowContainer {
             this.view.GrabWindow(this, evt.pageX, evt.pageY);
             evt.preventDefault();
         });
+        window.addEventListener("resize", () => {
+            this.SendResize();
+        });
+
+        //Create ResizeObserver
+        this.observer = new ResizeObserver(() => this.SendResize());
+        this.observer.observe(this.content);
     }
 
     view: RaptorWindowView;
@@ -152,6 +159,7 @@ export default class RaptorWindowContainer {
     private width: number = 100;
     private height: number = 100;
     private mountMode: RaptorWindowMounting;
+    private observer: ResizeObserver;
 
     box: HTMLElement;
     handles: HTMLElement[];
@@ -178,6 +186,7 @@ export default class RaptorWindowContainer {
                 this.handleEvents[1] = (evt: MouseEvent) => { };
                 this.handleEvents[2] = (evt: MouseEvent) => { };
                 this.handleEvents[3] = (evt: MouseEvent) => { };
+                this.UpdateSize(this.width, this.height);
                 break;
             case RaptorWindowMounting.Top:
                 this.ToggleHandles(false, true, false, false);
@@ -185,6 +194,7 @@ export default class RaptorWindowContainer {
                 this.handleEvents[1] = (evt: MouseEvent) => { this.UpdateSize(this.width, this.height + evt.movementY); };
                 this.handleEvents[2] = (evt: MouseEvent) => { };
                 this.handleEvents[3] = (evt: MouseEvent) => { };
+                this.UpdateSize(this.width, this.height);
                 break;
             case RaptorWindowMounting.Floating:
                 this.ToggleHandles(true, true, true, true);
@@ -200,11 +210,17 @@ export default class RaptorWindowContainer {
                     this.UpdateSize(this.width + delta, this.height);
                 };
                 this.handleEvents[3] = (evt: MouseEvent) => { this.UpdateSize(this.width + evt.movementX, this.height); };
+                this.UpdateSize(this.width, this.height);
                 break;
         }
 
         //Reset
         this.UpdateSize(this.width, this.height);
+    }
+
+    private SendResize() {
+        if (this.settings.ResizeWindow == null) { return; } //backawards-compatible
+        this.settings.ResizeWindow(this.content.clientWidth, this.content.clientHeight);
     }
 
     private ToggleHandles(top: boolean, bottom: boolean, left: boolean, right: boolean) {
@@ -232,6 +248,9 @@ export default class RaptorWindowContainer {
             this.box.style.width = null;
         }
         this.box.style.height = height + "px";
+
+        //Send
+        this.SendResize();
     }
 
 }

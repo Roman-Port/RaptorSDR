@@ -141,7 +141,7 @@ namespace RaptorSDR.Server.Core.Plugin
                 s.Read(binary, 0, binary.Length);
 
             //Add to package
-            package.RegisterFrontend(new RaptorPluginFrontend(item.data["NAME"], item.data["PLATFORM"], binary));
+            package.RegisterFrontend(new RaptorPluginFrontend(item.data["NAME"], item.data["PLATFORM"], binary, control.RegisterPluginFrontend(binary)));
         }
     }
 }

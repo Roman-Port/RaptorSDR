@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="{{RAPTORSDR_SDK}}\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj" />
+    <ProjectReference Include="{{RAPTORSDR_SDK}}\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj" />
+  </ItemGroup>
+</Project>

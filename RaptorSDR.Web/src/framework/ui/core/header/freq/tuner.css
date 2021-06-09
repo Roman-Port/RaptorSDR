@@ -14,12 +14,16 @@
     position: relative;
 }
 
+.rsys_header_tuner_num_value {
+    pointer-events:none;
+}
+
 .rsys_header_tuner_num_paddle {
-    position:absolute;
-    left:0;
-    right:0;
-    height:50%;
-    opacity:0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    opacity: 0;
 }
 
 .rsys_header_tuner_num_paddle:hover {

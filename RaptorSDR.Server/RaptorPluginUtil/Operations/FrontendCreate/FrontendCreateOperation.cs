@@ -51,6 +51,13 @@ namespace RaptorPluginUtil.Operations.FrontendCreate
                 return -1;
             }
 
+            //Clone SDK
+            if (CliUtil.RunCommand("git", "clone https://github.com/Roman-Port/RaptorSDR.Web.Common sdk", "/" + name) != 0)
+            {
+                Console.WriteLine("GIT clone failed! Is GIT installed?");
+                return -1;
+            }
+
             //Add to config
             cfg.frontends.Add(new RaptorConfig_Frontend
             {

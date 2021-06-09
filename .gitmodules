@@ -1,0 +1,12 @@
+[submodule "lib/LibSDR"]
+	path = lib/LibSDR
+	url = https://github.com/Roman-Port/LibSDR
+[submodule "Plugins/RomanPort.AudioOPUS/web/sdk"]
+	path = Plugins/RomanPort.AudioOPUS/web/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "Plugins/RomanPort.ViewSpectrum/web/sdk"]
+	path = Plugins/RomanPort.ViewSpectrum/web/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "RaptorSDR.Web/sdk"]
+	path = RaptorSDR.Web/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common

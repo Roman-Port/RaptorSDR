@@ -1,16 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\sdk",
+    "\\sdk\\plugin\\components",
     "\\src",
     "\\src\\framework",
-    "\\src\\framework\\errors",
     "\\src\\framework\\plugin",
     "\\src\\framework\\ui",
     "\\src\\framework\\ui\\core",
     "\\src\\framework\\ui\\core\\header",
-    "\\src\\framework\\web",
-    "\\src\\icons"
+    "\\src\\framework\\ui\\core\\window"
   ],
-  "SelectedNode": "\\src\\framework\\ui\\core\\header\\header.css",
+  "SelectedNode": "\\src\\framework\\ui\\core\\header\\RaptorSystemHeader.ts",
   "PreviewInSolutionExplorer": false
 }

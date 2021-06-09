@@ -5,9 +5,14 @@ using System.Text;
 
 namespace RaptorSDR.Server.Common.PluginComponents
 {
+    public delegate void IPluginDemodulator_EventArgs<T>(IPluginDemodulator demodulator, T data);
+
     public interface IPluginDemodulator : IPluginComponent, IAudioDemodulator
     {
         string DisplayNameShort { get; }
-        void BindToVfo(IRaptorVfo vfo);
+
+        event IPluginDemodulator_EventArgs<bool> OnWebStereoDetected;
+        event IPluginDemodulator_EventArgs<bool> OnWebRdsDetected;
+        event IPluginDemodulator_EventArgs<ulong> OnWebRdsFrame;
     }
 }

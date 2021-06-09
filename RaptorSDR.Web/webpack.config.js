@@ -7,7 +7,7 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
-                exclude: /node_modules/,
+                exclude: /node_modules/
             },
             {
                 test: /\.css$/i,
@@ -30,7 +30,8 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
         alias: {
             'raptorlib': path.join(__dirname, 'node_modules/raptorsdr.web.common'),
-            'icons': path.join(__dirname, 'src/icons')
+            'icons': path.join(__dirname, 'src/icons'),
+            'RaptorSdk': path.resolve(__dirname, 'sdk/')
         }
     },
     output: {

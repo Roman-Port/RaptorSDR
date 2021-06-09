@@ -3,3 +3,6 @@ UserData
 
 # Exclude build dirs for plugins
 Plugins/*/build
+
+# Exclude VS folder
+.vs/

@@ -12,9 +12,10 @@ namespace RaptorSDR.Server.Core.Web.Auth
 {
     public class RaptorAuthManager : IRaptorAuthManager
     {
-        public RaptorAuthManager(string authFile)
+        public RaptorAuthManager(IRaptorControl control, string authFile)
         {
             //Configure
+            this.control = control;
             this.authFile = authFile;
 
             //Load database
@@ -38,6 +39,7 @@ namespace RaptorSDR.Server.Core.Web.Auth
         private RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider(); 
 
         private string authFile;
+        private IRaptorControl control;
         private RaptorAuthDatabase db;
         private ConcurrentDictionary<string, IRaptorSession> sessions = new ConcurrentDictionary<string, IRaptorSession>();
 
@@ -75,6 +77,7 @@ namespace RaptorSDR.Server.Core.Web.Auth
                 is_admin = false,
                 scope_system = 0,
                 scope_plugin = new List<string>(),
+                refresh_token = GenerateRandomSecureString(32),
                 created = DateTime.UtcNow
             };
 
@@ -124,6 +127,26 @@ namespace RaptorSDR.Server.Core.Web.Auth
             return RaptorAuthStatus.OK;
         }
 
+        public RaptorAuthStatus SessionRefresh(string token, out IRaptorSession session)
+        {
+            //Find matching account
+            lock (db.users)
+            {
+                foreach (var a in db.users)
+                {
+                    if (a.refresh_token == token && token != null)
+                    {
+                        session = CreateSession(a);
+                        return RaptorAuthStatus.OK;
+                    }
+                }
+            }
+
+            //Failed
+            session = null;
+            return RaptorAuthStatus.INVALID_CREDENTIALS;
+        }
+
         public void RemoveAccount(RaptorAuthenticatedUserAccount account)
         {
             db.users.Remove(account);
@@ -133,7 +156,7 @@ namespace RaptorSDR.Server.Core.Web.Auth
         private IRaptorSession CreateSession(RaptorUserAccount account)
         {
             //Create session
-            RaptorSession session = new RaptorSession(GenerateRandomSecureString(16), null, account);
+            RaptorSession session = new RaptorSession(control, GenerateRandomSecureString(16), null, account);
 
             //Add session
             string token;

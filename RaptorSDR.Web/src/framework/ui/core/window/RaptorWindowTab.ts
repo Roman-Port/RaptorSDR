@@ -1,6 +1,6 @@
-import IRaptorWindow from "raptorsdr.web.common/src/ui/core/IRaptorWindow";
-import { RaptorWindowMounting } from "raptorsdr.web.common/src/ui/core/RaptorWindowMounting";
-import RaptorSize from "raptorsdr.web.common/src/ui/RaptorSize";
+import IRaptorWindow from "RaptorSdk/ui/core/IRaptorWindow";
+import { RaptorWindowMounting } from "RaptorSdk/ui/core/RaptorWindowMounting";
+import RaptorSize from "RaptorSdk/ui/RaptorSize";
 import RaptorUiUtil from "../../RaptorUiUtil";
 import RaptorWindowContainer from "./RaptorWindowContainer";
 
@@ -28,11 +28,6 @@ export default class RaptorWindowTab {
                 evt.preventDefault();
             }
         });
-
-        //test
-        for (var i = 0; i < 5; i++) {
-            this.AddWindow(new TestView(), RaptorWindowMounting.Bottom, 0);
-        }
 
         //Initialize docks
         this.RefreshAllDockingPoints();
@@ -191,31 +186,6 @@ export default class RaptorWindowTab {
             //Missing, insert it
             mount.appendChild(this.CreateEdgeDockingPoint());
         }
-    }
-
-}
-
-class TestView implements IRaptorWindow {
-
-    GetMinSize(): RaptorSize {
-        return new RaptorSize(300, 100);
-    }
-
-    GetMaxSize(): RaptorSize {
-        return new RaptorSize(800, 200);
-    }
-
-    GetWindowName(): string {
-        return "Test Window";
-    }
-    GetIsHeaderless(): boolean {
-        return false;
-    }
-    CreateWindow(window: HTMLElement): void {
-        
-    }
-    DestoryWindow(): void {
-        
     }
 
 }

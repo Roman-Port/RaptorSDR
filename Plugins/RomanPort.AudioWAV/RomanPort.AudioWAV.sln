@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.6.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomanPort.LibSDR", "..\..\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj", "{176F2913-C215-4774-B77A-37A2D0A51F88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaptorSDR.Server.Common", "..\..\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj", "{12E8819C-828E-4145-A261-62425F7EA249}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomanPort.AudioWAV", "server\RomanPort.AudioWAV.csproj", "{8AD50568-19CE-4722-9746-4256DB7D42E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|x64.Build.0 = Debug|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|x86.ActiveCfg = Debug|x86
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Debug|x86.Build.0 = Debug|x86
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|x64.ActiveCfg = Release|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|x64.Build.0 = Release|Any CPU
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|x86.ActiveCfg = Release|x86
+		{176F2913-C215-4774-B77A-37A2D0A51F88}.Release|x86.Build.0 = Release|x86
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|x64.Build.0 = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Debug|x86.Build.0 = Debug|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|x64.ActiveCfg = Release|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|x64.Build.0 = Release|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|x86.ActiveCfg = Release|Any CPU
+		{12E8819C-828E-4145-A261-62425F7EA249}.Release|x86.Build.0 = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|x64.Build.0 = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Debug|x86.Build.0 = Debug|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|x64.ActiveCfg = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|x64.Build.0 = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|x86.ActiveCfg = Release|Any CPU
+		{8AD50568-19CE-4722-9746-4256DB7D42E9}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

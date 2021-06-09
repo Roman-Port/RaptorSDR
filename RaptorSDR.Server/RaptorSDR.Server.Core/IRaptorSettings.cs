@@ -9,6 +9,7 @@ namespace RaptorSDR.Server.Core
     public interface IRaptorSettings : IRaptorLogger
     {
         string InstallPath { get; }
+        string ManagedPath { get; }
         IPEndPoint Listening { get; }
     }
 }

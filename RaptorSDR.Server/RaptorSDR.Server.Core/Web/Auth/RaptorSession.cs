@@ -2,14 +2,16 @@
 using RaptorSDR.Server.Common.Auth;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace RaptorSDR.Server.Core.Web.Auth
 {
     public class RaptorSession : IRaptorSession
     {
-        public RaptorSession(string id, string token, RaptorUserAccount info)
+        public RaptorSession(IRaptorControl control, string id, string token, RaptorUserAccount info)
         {
+            this.control = control;
             this.id = id;
             this.token = token;
             this.info = info;
@@ -18,10 +20,13 @@ namespace RaptorSDR.Server.Core.Web.Auth
         private string id;
         private string token;
         private RaptorUserAccount info;
+        private IRaptorControl control;
 
         public string Id => id;
 
         public string AccessToken => token;
+
+        public string RefreshToken => info.refresh_token;
 
         public bool IsAdmin => info.is_admin;
 
@@ -54,6 +59,11 @@ namespace RaptorSDR.Server.Core.Web.Auth
         public void SetToken(string token)
         {
             this.token = token;
+        }
+
+        public IRaptorWebFileInfo ResolveWebFile(string webPathname)
+        {
+            return control.ResolveWebFile(this, webPathname);
         }
     }
 }

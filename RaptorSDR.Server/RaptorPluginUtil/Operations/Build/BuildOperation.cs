@@ -18,9 +18,12 @@ namespace RaptorPluginUtil.Operations.Build
             string outputPath;
             if (!args.TryPop(out outputPath))
                 outputPath = $"{cfg.developer_name}.{cfg.plugin_name}.rpkg";
+            if (Environment.GetEnvironmentVariable("RAPTORSDR_USER") != null)
+                outputPath = Environment.GetEnvironmentVariable("RAPTORSDR_USER") + $"/plugins/{cfg.developer_name}.{cfg.plugin_name}.rpkg";
+            Console.WriteLine("Building to " + outputPath + "...");
 
             //Build
-            using(FileStream fs = new FileStream(outputPath, FileMode.Create))
+            using (FileStream fs = new FileStream(outputPath, FileMode.Create))
             using(ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Create))
             {
                 //Create

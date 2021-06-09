@@ -14,6 +14,8 @@ namespace RaptorSDR.Server
 
         public IPEndPoint Listening => new IPEndPoint(IPAddress.Any, 35341);
 
+        public string ManagedPath => InstallPath + "Managed\\";
+
         public void Log(RaptorLogLevel level, string topic, string message)
         {
             //Set color

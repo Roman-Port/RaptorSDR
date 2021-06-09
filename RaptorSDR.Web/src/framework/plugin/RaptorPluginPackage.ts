@@ -1,5 +1,5 @@
 import RaptorInfoPluginFrontend from "../web/entities/info/RaptorInfoPluginFrontend";
-import IRaptorPluginPackage from 'raptorsdr.web.common/src/plugin/IRaptorPluginPackage'
+import IRaptorPluginPackage from 'RaptorSdk/plugin/IRaptorPluginPackage'
 
 export default class RaptorPluginPackage implements IRaptorPluginPackage {
 
@@ -34,7 +34,7 @@ export default class RaptorPluginPackage implements IRaptorPluginPackage {
 
             //Read name
             var name = "";
-            for (var i = 0; i < nameLen; i++) {
+            for (var n = 0; n < nameLen; n++) {
                 name += String.fromCharCode(reader.getUint8(offset++));
             }
 
@@ -50,7 +50,7 @@ export default class RaptorPluginPackage implements IRaptorPluginPackage {
 
     private payload: ArrayBuffer;
     private info: RaptorInfoPluginFrontend;
-    private items: { [key: string]: ArrayBuffer }
+    private items: { [key: string]: ArrayBuffer } = {};
 
     GetName(): string {
         return this.info.name;

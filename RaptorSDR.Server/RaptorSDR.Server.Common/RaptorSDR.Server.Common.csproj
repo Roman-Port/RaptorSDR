@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\SDR\RomanPort.LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj" />
+    <ProjectReference Include="..\..\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj" />
   </ItemGroup>
 
 </Project>

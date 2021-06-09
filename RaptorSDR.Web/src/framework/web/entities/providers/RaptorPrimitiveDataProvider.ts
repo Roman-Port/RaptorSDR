@@ -1,7 +1,7 @@
-import RaptorEventDispatcher from 'raptorsdr.web.common/src/RaptorEventDispatcher';
-import IRaptorEndpoint from 'raptorsdr.web.common/src/web/IRaptorEndpoint';
-import IRaptorPrimitiveDataProvider from 'raptorsdr.web.common/src/web/providers/IRaptorPrimitiveDataProvider';
-import RaptorUtil from 'raptorsdr.web.common/src/util/RaptorUtil';
+import RaptorEventDispatcher from 'RaptorSdk/RaptorEventDispatcher';
+import IRaptorEndpoint from 'RaptorSdk/web/IRaptorEndpoint';
+import IRaptorPrimitiveDataProvider from 'RaptorSdk/web/providers/IRaptorPrimitiveDataProvider';
+import RaptorUtil from 'RaptorSdk/util/RaptorUtil';
 import RaptorConnection from '../../../RaptorConnection';
 import RaptorDataProvider from '../../RaptorDataProvider';
 import RaptorInfoProvider from '../info/RaptorInfoProvider';
@@ -14,7 +14,10 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
         this.endpointAck = this.endpoint.CreateSubscription("ACK");
         this.endpointSet = this.endpoint.CreateSubscription("SET_VALUE");
         this.endpointSet.OnMessage.Bind((payload: any) => {
-            //TODO: Check if the sender is ourselves so we can ignore our own messages
+            //Check if we're the sender
+            if (payload["sender_id"] != null && payload["sender_id"] == conn.sessionId) { return; }
+
+            //Process
             var value = payload["value"] as T;
             this.value = value;
             this.OnChanged.Fire(value);
@@ -35,6 +38,7 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
 
         //Set locally
         this.value = value;
+        this.OnChanged.Fire(value);
 
         //Create promise
         var p = new Promise<any>((resolve, reject) => {

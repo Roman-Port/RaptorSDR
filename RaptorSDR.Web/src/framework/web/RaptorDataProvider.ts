@@ -1,5 +1,5 @@
-import RaptorDispatcherOpcode from 'raptorsdr.web.common/src/web/dispatchers/RaptorDispatcherOpcode';
-import IRaptorDataProvider from 'raptorsdr.web.common/src/web/IRaptorDataProvider';
+import RaptorDispatcherOpcode from 'RaptorSdk/web/dispatchers/RaptorDispatcherOpcode';
+import IRaptorDataProvider from 'RaptorSdk/web/IRaptorDataProvider';
 import RaptorConnection from '../RaptorConnection';
 import RaptorInfoProvider from './entities/info/RaptorInfoProvider';
 

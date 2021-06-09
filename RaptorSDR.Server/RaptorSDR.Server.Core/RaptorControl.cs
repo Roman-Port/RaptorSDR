@@ -3,24 +3,29 @@ using Newtonsoft.Json.Linq;
 using RaptorSDR.Server.Common;
 using RaptorSDR.Server.Common.Dispatchers;
 using RaptorSDR.Server.Common.PluginComponents;
+using RaptorSDR.Server.Common.WebStream;
 using RaptorSDR.Server.Core.Plugin;
 using RaptorSDR.Server.Core.Radio;
 using RaptorSDR.Server.Core.Web;
 using RaptorSDR.Server.Core.Web.Auth;
 using RaptorSDR.Server.Core.Web.HTTP;
+using RaptorSDR.Server.Core.Web.WebStream;
+using RaptorSDR.Server.Core.Web.WebPackage;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using RaptorSDR.Server.Common.Auth;
 
 namespace RaptorSDR.Server.Core
 {
     /// <summary>
     /// The main server
     /// </summary>
-    public class RaptorControl : IRaptorControl
+    public unsafe class RaptorControl : IRaptorControl
     {
         public const int VERSION_MAJOR = 1;
         public const int VERSION_MINOR = 0;
@@ -42,8 +47,12 @@ namespace RaptorSDR.Server.Core
             //Make parts
             radio = new RaptorRadio(this);
             vfo = new RaptorVfo(this);
-            auth = new RaptorAuthManager(settings.InstallPath + "/auth.json");
+            auth = new RaptorAuthManager(this, settings.InstallPath + "/auth.json");
             authApi = new RaptorAuthApi(this, http);
+
+            //Bind audio
+            vfo.OnAudioEmitted += Vfo_OnAudioEmitted;
+            vfo.OnAudioReconfigured += Vfo_OnAudioReconfigured;
 
             //Add endpoints to all files in the web folder
             foreach(var f in new DirectoryInfo(settings.InstallPath).CreateSubdirectory("web").EnumerateFiles())
@@ -80,6 +89,7 @@ namespace RaptorSDR.Server.Core
         public IReadOnlyList<IPluginSource> PluginSources => pluginSources;
         public IRaptorRadio Radio => radio;
         public IRaptorVfo Vfo => vfo;
+        public RaptorHttpServer Http => http;
 
         private IRaptorSettings settings;
         private RaptorInstallation installation;
@@ -88,10 +98,15 @@ namespace RaptorSDR.Server.Core
         private RaptorAuthManager auth;
         private RaptorAuthApi authApi;
 
+        private RaptorWebPackageEndpoint packagesFrontend = new RaptorWebPackageEndpoint();
+        private RaptorWebPackageEndpoint packagesIcons = new RaptorWebPackageEndpoint();
+
         private List<RaptorPluginPackage> plugins = new List<RaptorPluginPackage>();
+        private List<string> streams = new List<string>();
         private List<IRaptorDataProvider> dataProviders = new List<IRaptorDataProvider>();
         private List<IPluginDemodulator> pluginDemodulators = new List<IPluginDemodulator>();
         private List<IPluginSource> pluginSources = new List<IPluginSource>();
+        private List<IPluginAudio> pluginAudio = new List<IPluginAudio>();
 
         private RaptorHttpServer http;
         private RaptorWebSocketEndpointServer rpc;
@@ -99,9 +114,20 @@ namespace RaptorSDR.Server.Core
         private RaptorDispatcherOpcode rpcDispatcher;
         private RaptorDispatcherOpcode rpcDispatcherPlugin;
         private RaptorDispatcherOpcode rpcDispatcherDataProvider;
+        private IRaptorEndpoint rpcPostConnected;
+        private IRaptorEndpoint rpcDirectoryListing;
+        private IRaptorEndpoint rpcDirectoryDrives;
+        private IRaptorEndpoint rpcDirectoryVerify;
 
         public void Init()
         {
+            //Make sure the managed folder exists
+            if(!Directory.Exists(settings.ManagedPath))
+            {
+                Log(RaptorLogLevel.LOG, "RaptorControl", $"Managed folder does not exist. Creating one at {settings.ManagedPath}...");
+                Directory.CreateDirectory(settings.ManagedPath);
+            }
+            
             //Load plugins
             Log(RaptorLogLevel.LOG, "RaptorControl", "Loading plugins...");
             int loaded = new PluginManager(this).UnpackPluginFolder(installation.Plugins.FullName, plugins);
@@ -123,7 +149,24 @@ namespace RaptorSDR.Server.Core
 
             //Add core HTTP endpoints
             http.BindToEndpoint("/info", EndpointInfo);
-            http.BindToEndpoint("/packages", EndpointPackages);
+            http.BindToEndpoint("/packages", packagesFrontend.HandleHttpRequest);
+            http.BindToEndpoint("/icons", packagesIcons.HandleHttpRequest);
+
+            //Register a command to send a message when a client connects. We do this at the end on purpose so that it's sent after all data providers have processed it
+            rpcPostConnected = rpcDispatcher.CreateSubscription("LOGIN_COMPLETED");
+            rpcPostConnected.OnClientConnected += RaptorControl_OnClientConnected;
+
+            //Create directory listing command
+            rpcDirectoryListing = rpcDispatcher.CreateSubscription("FILE_DIR_LISTING");
+            rpcDirectoryListing.OnMessage += RpcDirectoryListing_OnMessage;
+
+            //Create drive list command
+            rpcDirectoryDrives = rpcDispatcher.CreateSubscription("FILE_GET_ROOTS");
+            rpcDirectoryDrives.OnMessage += RpcDirectoryDrives_OnMessage;
+
+            //Create file verify command
+            rpcDirectoryVerify = rpcDispatcher.CreateSubscription("FILE_CHECK_ACCESS");
+            rpcDirectoryVerify.OnMessage += RpcDirectoryVerify_OnMessage; ;
 
             //Start HTTP server
             http.Start();
@@ -132,32 +175,141 @@ namespace RaptorSDR.Server.Core
             Log(RaptorLogLevel.LOG, "RaptorControl", $"Server ready Listening on {settings.Listening.ToString()}.");
         }
 
+        private void RpcDirectoryVerify_OnMessage(IRaptorEndpointClient client, JObject payload)
+        {
+            //Get arguments
+            bool valid = payload.TryGetValue("path", out JToken pathValue) && pathValue.Type == JTokenType.String;
+            string path = (string)pathValue;
+
+            //Get info
+            var info = client.Session.ResolveWebFile(path);
+
+            //Check
+            JObject response = new JObject();
+            response["token"] = payload["token"];
+            response["exists"] = info.Exists;
+            response["can_write"] = valid && info.CanWrite;
+            response["can_read"] = valid && info.CanRead;
+
+            //Send response
+            rpcDirectoryVerify.SendTo(client, response);
+        }
+
+        private void RpcDirectoryDrives_OnMessage(IRaptorEndpointClient client, JObject incomingPayload)
+        {
+            //Prepare response
+            JArray roots = new JArray();
+
+            //Add drives if we'd be able to use them
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            foreach (var d in drives)
+            {
+                JObject data = new JObject();
+                data["name"] = d.Name;
+                data["path"] = d.RootDirectory.FullName;
+                data["nick"] = d.VolumeLabel;
+                data["size"] = d.TotalSize / 1000;
+                data["free"] = d.AvailableFreeSpace / 1000;
+                roots.Add(data);
+            }
+
+            //Send
+            JObject payload = new JObject();
+            payload["token"] = incomingPayload["token"];
+            payload["drives"] = roots;
+            payload["managed_root"] = new DirectoryInfo(settings.ManagedPath).Root.FullName;
+            rpcDirectoryDrives.SendTo(client, payload);
+        }
+
+        private void RpcDirectoryListing_OnMessage(IRaptorEndpointClient client, JObject payload)
+        {
+            JObject response = new JObject();
+            response["token"] = payload["token"];
+            response["status"] = RpcGetDirectoryListing(payload, client.Session, out JArray list);
+            response["list"] = list;
+            rpcDirectoryListing.SendTo(client, response);
+        }
+
+        private string RpcGetDirectoryListing(JObject payload, IRaptorSession session, out JArray list)
+        {
+            //Prepare
+            list = new JArray();
+
+            //Get arguments
+            if (!payload.TryGetValue("path", out JToken pathValue) || pathValue.Type != JTokenType.String)
+                return "MISSING_PATH";
+
+            //Get info
+            DirectoryInfo info = new DirectoryInfo(RaptorWebFileInfo.GetUnsafeAbsolutePathFromWeb(settings, (string)pathValue));
+
+            //Check if it exists
+            if (!info.Exists)
+                return "DOES_NOT_EXIST";
+
+            //Check if we're allowed to get this directory if it's unmanaged
+            if(!info.FullName.StartsWith(settings.ManagedPath) && !session.CheckSystemScope(RaptorScope.FILE_READ_ANYWHERE))
+                return "USER_DENIED_UNMANAGED";
+
+            //Check if we're allowed to get this directory
+            if (!session.CheckSystemScope(RaptorScope.FILE_READ_MANAGED))
+                return "USER_DENIED_MANAGED";
+
+            //Query the folder contents
+            List<FileSystemInfo> entries = new List<FileSystemInfo>();
+            try
+            {
+                entries.AddRange(info.GetFiles());
+                entries.AddRange(info.GetDirectories());
+            } catch
+            {
+                return "OS_DENIED";
+            }
+
+            //Add all
+            foreach(var d in entries)
+            {
+                JObject data = new JObject();
+                bool isDir = d.GetType() == typeof(DirectoryInfo);
+                data["name"] = d.Name;
+                data["type"] = isDir ? "DIR" : "FILE";
+                data["date"] = d.LastWriteTimeUtc;
+                data["size"] = isDir ? 0 : ((FileInfo)d).Length;
+                list.Add(data);
+            }
+
+            return "OK";
+        }
+
         private void EndpointInfo(RaptorHttpContext ctx)
         {
             //Create
             JObject info = new JObject();
             info["version_major"] = VERSION_MAJOR;
             info["version_minor"] = VERSION_MINOR;
-            info["plugins"] = new JArray();
-            foreach(var p in plugins)
+            info["icons"] = JToken.FromObject(packagesIcons.GetPackageHashes());
+            info["streams"] = JToken.FromObject(streams);
+
+            //Create plugins
+            info["plugins"] = HelperBuildInfoArray(plugins, (RaptorPluginPackage p) =>
             {
                 JObject plugin = new JObject();
+                plugin["id"] = p.Server.Id.ToString();
                 plugin["developer_name"] = p.DeveloperName;
                 plugin["plugin_name"] = p.PluginName;
-                plugin["frontends"] = new JArray();
-                foreach(var f in p.Frontends)
+                plugin["frontends"] = HelperBuildInfoArray(p.Frontends, (RaptorPluginFrontend f) =>
                 {
                     JObject frontend = new JObject();
                     frontend["name"] = f.Name;
                     frontend["platform"] = f.Platform;
                     frontend["size"] = f.Binary.Length;
                     frontend["sha256"] = f.Sha256;
-                    ((JArray)plugin["frontends"]).Add(frontend);
-                }
-                ((JArray)info["plugins"]).Add(plugin);
-            }
-            info["providers"] = new JArray();
-            foreach(var p in dataProviders)
+                    return frontend;
+                });
+                return plugin;
+            });
+
+            //Create data providers
+            info["providers"] = HelperBuildInfoArray(dataProviders, (IRaptorDataProvider p) =>
             {
                 JObject provider = new JObject();
                 provider["id"] = p.Id.ToString();
@@ -165,8 +317,18 @@ namespace RaptorSDR.Server.Core
                 provider["type"] = p.GetType().FullName.Split('`')[0];
                 provider["info"] = new JObject();
                 p.BuildInfo((JObject)provider["info"]);
-                ((JArray)info["providers"]).Add(provider);
-            }
+                return provider;
+            });
+
+            //Create sources
+            info["sources"] = HelperBuildInfoArray(PluginSources, (IPluginSource item) =>
+            {
+                JToken e = new JObject();
+                e["name"] = item.DisplayName;
+                e["id"] = item.Id.ToString();
+                e["icon"] = item.Icon?.Sha256;
+                return e;
+            });
 
             //Send
             ctx.ResponseHeaders.Add("content-type", "application/json");
@@ -174,41 +336,31 @@ namespace RaptorSDR.Server.Core
                 sw.Write(JsonConvert.SerializeObject(info, Formatting.Indented));
         }
 
-        private void EndpointPackages(RaptorHttpContext ctx)
+        private static JArray HelperBuildInfoArray<T>(IReadOnlyList<T> data, Func<T, JToken> callback)
         {
-            //Load list of SHA-256 hashes to use
-            string[] hashes;
-            using (StreamReader sr = new StreamReader(ctx.InputStream))
-                hashes = JsonConvert.DeserializeObject<string[]>(sr.ReadToEnd());
-
-            //Loop through these hashes and find each
-            RaptorPluginFrontend[] frontends = new RaptorPluginFrontend[hashes.Length];
-            for(int i = 0; i<hashes.Length; i++)
-            {
-                if (!FindFrontendByHash(hashes[i], out frontends[i]))
-                {
-                    ctx.StatusCode = HttpStatusCode.NotFound;
-                    return;
-                }
-            }
-
-            //We know we have them all. Send all
-            for(int i = 0; i<frontends.Length; i++)
-            {
-                ctx.OutputStream.Write(BitConverter.GetBytes((uint)frontends[i].Binary.Length), 0, 4);
-                ctx.OutputStream.Write(frontends[i].Binary, 0, frontends[i].Binary.Length);
-            }
+            JArray arr = new JArray();
+            foreach (var d in data)
+                arr.Add(callback(d));
+            return arr;
         }
 
-        private bool FindFrontendByHash(string hash, out RaptorPluginFrontend frontend)
+        private void RaptorControl_OnClientConnected(IRaptorEndpointClient client, IRaptorSession session)
         {
-            foreach(var p in plugins)
-            {
-                if (p.GetFrontendByHash(hash, out frontend))
-                    return true;
-            }
-            frontend = null;
-            return false;
+            JObject payload = new JObject();
+            payload["session_id"] = client.Session.Id;
+            rpcPostConnected.SendTo(client, payload);
+        }
+
+        private void Vfo_OnAudioReconfigured(IRaptorVfo vfo, float audioSampleRate)
+        {
+            foreach (var audio in pluginAudio)
+                audio.ReconfigureAudio(audioSampleRate);
+        }
+
+        private void Vfo_OnAudioEmitted(IRaptorVfo vfo, float* left, float* right, int count)
+        {
+            foreach (var audio in pluginAudio)
+                audio.SendAudio(left, right, count);
         }
 
         public void Log(RaptorLogLevel level, string topic, string message)
@@ -225,6 +377,55 @@ namespace RaptorSDR.Server.Core
         public void RegisterPluginDemodulator(RaptorPlugin plugin, IPluginDemodulator demodulator)
         {
             pluginDemodulators.Add(demodulator);
+        }
+
+        public void RegisterPluginSource(RaptorPlugin plugin, IPluginSource source)
+        {
+            pluginSources.Add(source);
+            source.Init(BufferSize);
+        }
+
+        public void RegisterPluginAudio(RaptorPlugin plugin, IPluginAudio audio)
+        {
+            pluginAudio.Add(audio);
+        }
+
+        public RaptorWebPackage RegisterPluginFrontend(byte[] data)
+        {
+            return packagesFrontend.RegisterPackage(data);
+        }
+
+        public IRaptorWebPackage RegisterIcon(byte[] binary)
+        {
+            return packagesIcons.RegisterPackage(binary);
+        }
+
+        public IRaptorWebPackage RegisterIcon(Stream stream)
+        {
+            byte[] binary = new byte[stream.Length];
+            stream.Read(binary, 0, binary.Length);
+            return RegisterIcon(binary);
+        }
+
+        public IRaptorWebPackage RegisterIcon(string embeddedResourceName)
+        {
+            IRaptorWebPackage package;
+            using (Stream s = Assembly.GetCallingAssembly().GetManifestResourceStream(embeddedResourceName))
+                package = RegisterIcon(s);
+            return package;
+        }
+
+        public IRaptorWebStreamServer<WebStream> RegisterWebStream<WebStream>(RaptorNamespace id) where WebStream: RaptorWebStream
+        {
+            string path = "/stream/" + id.ToString();
+            Log(RaptorLogLevel.DEBUG, "RaptorControl", $"Registered web stream at {path}");
+            streams.Add(path);
+            return new RaptorWebStreamServer<WebStream>(this, path);
+        }
+
+        public IRaptorWebFileInfo ResolveWebFile(IRaptorSession session, string webPathname)
+        {
+            return new RaptorWebFileInfo(settings, session, webPathname);
         }
     }
 }

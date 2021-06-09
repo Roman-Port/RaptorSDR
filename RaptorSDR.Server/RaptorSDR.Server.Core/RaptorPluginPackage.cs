@@ -40,19 +40,5 @@ namespace RaptorSDR.Server.Core
         {
             return server != null;
         }
-
-        public bool GetFrontendByHash(string hash, out RaptorPluginFrontend frontend)
-        {
-            frontend = null;
-            foreach(var f in frontends)
-            {
-                if(f.Sha256 == hash)
-                {
-                    frontend = f;
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

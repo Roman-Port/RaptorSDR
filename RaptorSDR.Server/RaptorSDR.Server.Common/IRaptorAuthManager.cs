@@ -9,6 +9,7 @@ namespace RaptorSDR.Server.Common
     {
         RaptorAuthStatus SessionRegister(string username, string password, out IRaptorSession session);
         RaptorAuthStatus SessionLogin(string username, string password, out IRaptorSession session);
+        RaptorAuthStatus SessionRefresh(string token, out IRaptorSession session);
         bool Authenticate(string token, out IRaptorSession session);
     }
 }

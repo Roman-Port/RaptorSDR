@@ -11,6 +11,7 @@
     <None Remove="Templates\FrontendNpm\plugin.ts" />
     <None Remove="Templates\FrontendNpm\tsconfig.json" />
     <None Remove="Templates\FrontendNpm\webpack.config.js" />
+    <None Remove="Templates\ServerCreate\template.csproj.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
     <EmbeddedResource Include="Templates\FrontendNpm\plugin.ts" />
     <EmbeddedResource Include="Templates\FrontendNpm\tsconfig.json" />
     <EmbeddedResource Include="Templates\FrontendNpm\webpack.config.js" />
+    <EmbeddedResource Include="Templates\ServerCreate\template.csproj.txt" />
   </ItemGroup>
 
   <ItemGroup>

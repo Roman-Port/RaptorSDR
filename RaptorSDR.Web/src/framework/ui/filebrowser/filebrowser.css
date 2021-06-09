@@ -1,0 +1,300 @@
+.rsys_filebrowser {
+    display: flex;
+    flex-direction:row;
+    height: 100%;
+}
+
+/* Sidebar */
+
+.rsys_filebrowser_sidebar {
+    background: #1c1f21;
+    padding: 15px 0;
+    width: 180px;
+    flex-shrink: 0;
+}
+
+.rsys_filebrowser_sidebar_entry {
+    padding: 5px 15px;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    padding-left: 40px;
+    background-position-x: 15px;
+    background-position-y: center;
+    font-size: 13px;
+    color: #e6e5e5;
+    cursor: pointer;
+}
+
+.rsys_filebrowser_sidebar_entry:hover {
+    background-color: #23272a;
+}
+
+.rsys_filebrowser_sidebar_sep {
+    background: #2c2f33;
+    margin: 15px;
+    height: 1px;
+}
+
+.rsys_filebrowser_sidebar_entry_drive {
+    background-image: url(assets/drive.svg);
+}
+
+.rsys_filebrowser_sidebar_entry_home {
+    background-image: url(assets/home.svg);
+}
+
+.rsys_filebrowser_sidebar_space {
+    background: #4a4b4c;
+    margin-top: 3px;
+    height: 3px;
+    position: relative;
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.rsys_filebrowser_sidebar_space_consumed {
+    background: var(--color-accent);
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 75%;
+    position: absolute;
+}
+
+/* Main content */
+
+.rsys_filebrowser_main {
+    flex-grow: 1;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.rsys_filebrowser_main_errored .rsys_filebrowser_error {
+    display: block !important;
+}
+
+.rsys_filebrowser_main_errored .rsys_filebrowser_filegrid {
+    display: none !important;
+}
+
+.rsys_filebrowser_error {
+    background-color: #f94747;
+    padding: 10px;
+    margin: 15px;
+    color: white;
+    border-radius: 5px;
+    font-size: 15px;
+    display: none;
+    background-repeat: no-repeat;
+    background-size: 24px;
+    background-position-y: center;
+    background-position-x: 15px;
+    padding-left: 54px;
+    box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.11);
+}
+
+.rsys_filebrowser_error_title {
+    text-transform: uppercase;
+    font-weight: 800;
+    color: white;
+    font-size: 15px;
+}
+
+.rsys_filebrowser_error_body {
+    color: #fffffff2;
+    font-size: 13px;
+}
+
+.rsys_filebrowser_error_locked {
+    background-image:url(assets/locked.svg);
+}
+
+.rsys_filebrowser_error_lost {
+    background-image: url(assets/lost.svg);
+}
+
+.rsys_filebrowser_error_denied {
+    background-image: url(assets/denied.svg);
+}
+
+.rsys_filebrowser_input {
+    order: 10000;
+    width: auto;
+    background: #1c1f21;
+    flex-grow: 1;
+    border: 1px solid #4a4b4c;
+    border-radius: 3px;
+    outline: none;
+    color: white;
+    padding: 0 10px;
+}
+
+/* Path */
+
+.rsys_filebrowser_path {
+    padding: 0 15px;
+    background: #23272a;
+    position: relative;
+    height: 45px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.rsys_filebrowser_path_carousel {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    left: 15px;
+}
+
+.rsys_filebrowser_path_extended .rsys_filebrowser_path_carousel {
+    left: unset;
+    right: 15px;
+}
+
+.rsys_filebrowser_path_extended .rsys_filebrowser_path_rolloff {
+    background: linear-gradient( 90deg, rgb(35 39 42) 0%, rgb(35 39 42) 25%, rgba(28,31,33,0) 100%);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    z-index: 9;
+}
+
+.rsys_filebrowser_path_divider {
+    background-image: url(assets/right.svg);
+    width: 14px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    opacity: 0.5;
+}
+
+.rsys_filebrowser_path_divider:first-of-type {
+    background-image:url(assets/drive.svg);
+    opacity: 1;
+    margin-right: 5px;
+}
+
+.rsys_filebrowser_path_item {
+    color: white;
+    font-size: 13px;
+    padding: 5px 6px;
+    margin: 10px 0;
+    background-color: transparent;
+    transition: background-color 100ms ease-in-out;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.rsys_filebrowser_path_item:hover {
+    background-color:#2c2f33;
+}
+
+/* File grid */
+
+.rsys_filebrowser_filegrid {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+    padding-bottom: 15px;
+}
+
+.rsys_filebrowser_filegrid_row {
+    display: flex;
+    flex-direction: row;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.rsys_filebrowser_filegrid_row:hover {
+    background-color: #4a4b4c;
+}
+
+.rsys_filebrowser_filegrid_header {
+    position: sticky;
+    background: #2c2f33 !important;
+    top: 0;
+    border-bottom: 1px solid #4a4b4c;
+    margin-bottom: 10px;
+    cursor: unset !important;
+}
+
+.rsys_filebrowser_filegrid_header .rsys_filebrowser_filegrid_cell {
+    color: white !important;
+    text-align:left !important;
+    font-weight: 700;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.rsys_filebrowser_filegrid_cell {
+    color: #eaeaea;
+    margin: 3px 3px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.rsys_filebrowser_filegrid_cell_sortable {
+    background-position-x: center;
+    background-position-y: -2px;
+    background-repeat: no-repeat;
+    background-size: 15px;
+    cursor: pointer;
+}
+
+.rsys_filebrowser_filegrid_cell_sort_up {
+    background-image: url(assets/sort_up.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_sort_down {
+    background-image: url(assets/sort_down.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_icon {
+    width: 20px;
+    background-size: 15px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.rsys_filebrowser_filegrid_cell_name {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rsys_filebrowser_filegrid_cell_date {
+    width: 200px;
+}
+
+.rsys_filebrowser_filegrid_cell_size {
+    width: 80px;
+    text-align:right;
+}
+
+.rsys_filebrowser_filegrid_cell_icon_folder {
+    background-image: url(assets/folder.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_icon_audio {
+    background-image: url(assets/file_audio.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_icon_generic {
+    background-image: url(assets/file_generic.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_icon_photo {
+    background-image: url(assets/file_photo.svg);
+}
+
+.rsys_filebrowser_filegrid_cell_icon_text {
+    background-image: url(assets/file_text.svg);
+}

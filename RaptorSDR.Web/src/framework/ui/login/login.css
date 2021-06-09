@@ -1,0 +1,74 @@
+.rsys_login {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999999;
+    background-color: #2C2F33;
+    display: flex;
+    opacity: 1;
+    transition: opacity 150ms ease-in-out;
+}
+
+.rsys_login_hide {
+    opacity:0;
+    pointer-events: none;
+}
+
+.rsys_login_box {
+    margin: auto;
+    width: 300px;
+    display: none;
+    flex-direction: column;
+}
+
+.rsys_login_box_enabled {
+    display: flex;
+}
+
+.rsys_login_title {
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+    margin: auto;
+}
+
+.rsys_login_sub {
+    color: #cccccc;
+    margin: auto;
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+
+.rsys_login_input {
+    padding: 8px 15px;
+    background: #ecebeb;
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 5px;
+    outline: none;
+}
+
+.rsys_login_btn {
+    padding: 0 15px;
+    background: #ecebeb;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    line-height: 40px;
+    background: var(--color-accent);
+    color: white;
+}
+
+.rsys_login_error {
+    color: #ff6e6e;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.rsys_login_error:empty {
+    display: none;
+}

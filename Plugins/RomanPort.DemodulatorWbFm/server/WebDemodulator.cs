@@ -13,6 +13,10 @@ namespace RomanPort.DemodulatorWbFm
         {
             this.ctx = ctx;
             this.id = id;
+
+            OnRdsDetected += (bool detected) => OnWebRdsDetected?.Invoke(this, detected);
+            OnRdsFrameEmitted += (ulong frame) => OnWebRdsFrame?.Invoke(this, frame);
+            OnStereoDetected += (bool detected) => OnWebStereoDetected?.Invoke(this, detected);
         }
         
         public string DisplayName => "Wideband FM";
@@ -22,30 +26,11 @@ namespace RomanPort.DemodulatorWbFm
 
         public IRaptorControl Control => ctx.Control;
 
-        private IRaptorVfo vfo;
         private IRaptorContext ctx;
         private string id;
 
-        public void BindToVfo(IRaptorVfo vfo)
-        {
-            OnRdsDetected += WebDemodulator_OnRdsDetected;
-            OnRdsFrameEmitted += WebDemodulator_OnRdsFrameEmitted;
-            OnStereoDetected += WebDemodulator_OnStereoDetected;
-        }
-
-        private void WebDemodulator_OnStereoDetected(bool stereoDetected)
-        {
-            vfo.StereoDetected = stereoDetected;
-        }
-
-        private void WebDemodulator_OnRdsFrameEmitted(ulong frame)
-        {
-            vfo.ReportRdsFrame(frame);
-        }
-
-        private void WebDemodulator_OnRdsDetected(bool rdsDetected)
-        {
-            vfo.RdsDetected = rdsDetected;
-        }
+        public event IPluginDemodulator_EventArgs<bool> OnWebStereoDetected;
+        public event IPluginDemodulator_EventArgs<bool> OnWebRdsDetected;
+        public event IPluginDemodulator_EventArgs<ulong> OnWebRdsFrame;
     }
 }

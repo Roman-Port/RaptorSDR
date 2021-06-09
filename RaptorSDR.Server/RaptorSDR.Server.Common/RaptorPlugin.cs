@@ -30,5 +30,15 @@ namespace RaptorSDR.Server.Common
         {
             control.RegisterPluginDemodulator(this, demodulator);
         }
+
+        protected void RegisterSource(IPluginSource source)
+        {
+            control.RegisterPluginSource(this, source);
+        }
+
+        protected void RegisterAudio(IPluginAudio audio)
+        {
+            control.RegisterPluginAudio(this, audio);
+        }
     }
 }

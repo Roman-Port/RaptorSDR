@@ -12,42 +12,39 @@ namespace RaptorSDR.Server.Core.Web.Auth
         public RaptorAuthApi(RaptorControl control, RaptorHttpServer http)
         {
             this.control = control;
-            http.BindToEndpoint("/accounts/register", HandleRegister);
             http.BindToEndpoint("/accounts/login", HandleLogin);
         }
 
         private RaptorControl control;
-
-        private void HandleRegister(RaptorHttpContext ctx)
-        {
-            //Read request body
-            RequestBody request = ctx.ReadBodyAsJson<RequestBody>();
-
-            //Register
-            RaptorAuthStatus status = control.Auth.SessionRegister(request.username, request.password, out IRaptorSession session);
-
-            //Write
-            ctx.WriteBodyAsJson(new ResponseBody
-            {
-                status = status.ToString(),
-                token = session == null ? null : session.AccessToken,
-                id = session == null ? null : session.Id
-            });
-        }
 
         private void HandleLogin(RaptorHttpContext ctx)
         {
             //Read request body
             RequestBody request = ctx.ReadBodyAsJson<RequestBody>();
 
-            //Register
-            RaptorAuthStatus status = control.Auth.SessionLogin(request.username, request.password, out IRaptorSession session);
+            //Process
+            IRaptorSession session;
+            RaptorAuthStatus status;
+            switch(request.auth_type)
+            {
+                case "PASSWORD":
+                    status = control.Auth.SessionLogin(request.username, request.password, out session);
+                    break;
+                case "REFRESH":
+                    status = control.Auth.SessionRefresh(request.refresh_token, out session);
+                    break;
+                default:
+                    session = null;
+                    status = RaptorAuthStatus.INVALID_LOGIN_METHOD;
+                    break;
+            }
 
             //Write
             ctx.WriteBodyAsJson(new ResponseBody
             {
                 status = status.ToString(),
-                token = session == null ? null : session.AccessToken,
+                session_token = session == null ? null : session.AccessToken,
+                refresh_token = session == null ? null : session.RefreshToken,
                 id = session == null ? null : session.Id,
                 ok = (int)status >= 0
             });
@@ -55,6 +52,10 @@ namespace RaptorSDR.Server.Core.Web.Auth
 
         class RequestBody
         {
+            public string auth_type;
+
+            public string refresh_token;
+
             public string username;
             public string password;
         }
@@ -62,7 +63,8 @@ namespace RaptorSDR.Server.Core.Web.Auth
         class ResponseBody
         {
             public string status;
-            public string token;
+            public string session_token;
+            public string refresh_token;
             public string id;
             public bool ok;
         }

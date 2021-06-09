@@ -1,5 +1,5 @@
-﻿import IRaptorPlugin from 'raptorsdr.web.common/src/plugin/IRaptorPlugin';
-import IRaptorPluginContext from 'raptorsdr.web.common/src/plugin/IRaptorPluginContext';
+﻿import IRaptorPlugin from "RaptorSdk/plugin/IRaptorPlugin";
+import IRaptorPluginContext from "RaptorSdk/plugin/IRaptorPluginContext";
 
 export default class {{NAME_PLUGIN}}Plugin implements IRaptorPlugin {
 

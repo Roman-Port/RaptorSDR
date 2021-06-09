@@ -1,4 +1,5 @@
-﻿using RaptorSDR.Server.Common.DataProviders;
+﻿using RaptorSDR.Server.Common;
+using RaptorSDR.Server.Common.DataProviders;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -81,11 +82,11 @@ namespace RaptorSDR.Server.Core.Radio
         /// <param name="action"></param>
         public static void BindOnChangedWorkerEvent<T>(RaptorPrimitiveDataProvider<T> dataProvider, RaptorWorkerCommandProcessor ctx, RaptorDataProvider_OnChangedEventArgs<T> action)
         {
-            dataProvider.BindOnChanged((T value) =>
+            dataProvider.BindOnChanging((T value, IRaptorSession session) =>
             {
                 ctx.QueueWorkerCommand(() =>
                 {
-                    action(value);
+                    action(value, session);
                 });
             });
         }

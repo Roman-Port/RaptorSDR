@@ -1,14 +1,19 @@
-import IRaptorConnection from 'raptorsdr.web.common/src/IRaptorConnection';
-import IRaptorPluginContext from 'raptorsdr.web.common/src/plugin/IRaptorPluginContext';
-import IRaptorPlugin from 'raptorsdr.web.common/src/plugin/IRaptorPlugin';
-import RaptorMenuBuilder from 'raptorsdr.web.common/src/ui/menu/RaptorMenuBuilder';
+import IRaptorConnection from 'RaptorSdk/IRaptorConnection';
+import IRaptorPluginContext from 'RaptorSdk/plugin/IRaptorPluginContext';
+import IRaptorPlugin from 'RaptorSdk/plugin/IRaptorPlugin';
+import RaptorMenuBuilder from 'RaptorSdk/ui/menu/RaptorMenuBuilder';
 import RaptorInfoPlugin from '../web/entities/info/RaptorInfoPlugin';
 import RaptorPluginPackage from './RaptorPluginPackage';
-import IRaptorPluginPackage from 'raptorsdr.web.common/src/plugin/IRaptorPluginPackage';
+import IRaptorPluginPackage from 'RaptorSdk/plugin/IRaptorPluginPackage';
+import IRaptorWindow from 'RaptorSdk/ui/core/IRaptorWindow';
+import IRaptorPluginRegisteredWindow from 'RaptorSdk/plugin/IRaptorPluginRegisteredWindow';
+import RaptorPluginRegisteredWindow from './RaptorPluginRegisteredWindow';
+import RaptorConnection from '../RaptorConnection';
+import IRaptorPluginAudio from '../../../sdk/plugin/components/IRaptorPluginAudio';
 
 export default class RaptorPluginContext implements IRaptorPluginContext {
 
-    constructor(info: RaptorInfoPlugin, conn: IRaptorConnection) {
+    constructor(info: RaptorInfoPlugin, conn: RaptorConnection) {
         this.info = info;
         this.conn = conn;
         this.packages = [];
@@ -33,11 +38,11 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
     }
 
     GetId(): string {
-        throw new Error('Method not implemented.');
+        return this.info.id;
     }
 
     info: RaptorInfoPlugin;
-    conn: IRaptorConnection;
+    conn: RaptorConnection;
     private packages: RaptorPluginPackage[];
     private scripts: IRaptorPlugin[];
 
@@ -49,7 +54,7 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
         this.packages.push(pack);
     }
 
-    private static InstantiatePluginScript(pack: RaptorPluginPackage, name: string): IRaptorPlugin {
+    private InstantiatePluginScript(pack: RaptorPluginPackage, name: string): IRaptorPlugin {
         var f = new Function('"use strict";' + pack.GetFileAsString(name) + ';return RaptorPlugin;')();
         return new f(this);
     }
@@ -57,7 +62,7 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
     //Creates the scripts
     Instantiate() {
         for (var i = 0; i < this.packages.length; i++) {
-            var s = RaptorPluginContext.InstantiatePluginScript(this.packages[i], "index.js");
+            var s = this.InstantiatePluginScript(this.packages[i], "index.js");
             this.scripts.push(s);
         }
     }
@@ -67,6 +72,14 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
         for (var i = 0; i < this.scripts.length; i++) {
             this.scripts[i].Init();
         }
+    }
+
+    RegisterWindowClass(displayName: string, create: (info: any) => IRaptorWindow): IRaptorPluginRegisteredWindow {
+        return new RaptorPluginRegisteredWindow(this.conn.app, displayName, create);
+    }
+
+    RegisterComponentAudio(audio: IRaptorPluginAudio): void {
+        this.conn.RegisterComponentAudio(this, audio);
     }
 
 }

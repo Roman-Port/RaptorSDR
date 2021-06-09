@@ -1,0 +1,132 @@
+.rplug_rds {
+    display: flex;
+    background: #23272a;
+    flex-direction: row;
+    height: 40px;
+}
+
+.rplug_rds_bottom {
+    background: #1c1f21;
+}
+
+.rplug_rds_text {
+    color: white;
+    font-size: 15px;
+    white-space: pre;
+    font-family: 'Roboto Mono', monospace;
+    text-overflow: clip;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.rplug_rds_element {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.rplug_rds_indicator .rplug_rds_text {
+    background: white;
+    color: black;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.rplug_rds_text br {
+    display: none; /* ugly hack */
+}
+
+.rplug_rds_indicator {
+    margin-right: 5px;
+}
+
+.rplug_rds_indicator_unlit .rplug_rds_text {
+    opacity: 0.25;
+}
+
+.rplug_rds_ps {
+    background: #1c1f21;
+    padding: 0px 15px;
+    margin-right: 15px;
+}
+
+.rplug_rds_rt {
+    position: relative;
+    flex-grow: 1;
+}
+
+.rplug_rds_rt .rplug_rds_text {
+    position: absolute !important;
+    right: 0;
+    left: 0;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.rplug_rds_pi {
+    position: relative;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.rplug_rds_stationinfo {
+    position: fixed;
+    margin-top: 35px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 90ms ease-in-out, margin 90ms ease-in-out;
+    display: none;
+}
+
+.rplug_rds_pi:hover .rplug_rds_stationinfo {
+    opacity: 1;
+    margin-top: 50px;
+}
+
+.rplug_rds_stationinfo_content {
+    padding: 10px;
+    background: #23272a;
+    border-radius: 5px;
+    border: 1px solid #2C2F33;
+    position: absolute;
+    display: flex;
+}
+
+.rplug_rds_stationinfo_div {
+    margin: 0 5px;
+    color: #585858;
+    font-size: 15px;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 800;
+}
+
+.rplug_rds_stationinfo_distance {
+    margin-right: 5px;
+}
+
+.rplug_rds_stationinfo_direction {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 14px solid white;
+    margin: 3px 5px;
+}
+
+.rplug_rds_stationinfo_gps {
+    display: none;
+}
+
+.rplug_rds_stationinfo_activegps .rplug_rds_stationinfo_gps {
+    display: block;
+}
+
+.rplug_rds_stationinfo_info .rplug_rds_stationinfo {
+    display: block;
+}
+
+.rplug_rds_stationinfo_info .rplug_rds_pi {
+    display: flex;
+}

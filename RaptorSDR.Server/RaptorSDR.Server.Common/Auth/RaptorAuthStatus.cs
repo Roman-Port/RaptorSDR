@@ -13,6 +13,7 @@ namespace RaptorSDR.Server.Common.Auth
         ACCOUNT_EXISTS = -1,
         INVALID_CREDENTIALS = -2,
         MALFORMED_USERNAME = -3,
-        MALFORMED_PASSWORD = -4
+        MALFORMED_PASSWORD = -4,
+        INVALID_LOGIN_METHOD = -5,
     }
 }

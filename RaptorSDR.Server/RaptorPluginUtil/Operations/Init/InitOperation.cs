@@ -22,6 +22,7 @@ namespace RaptorPluginUtil.Operations.Init
             if(sdkPath == null || sdkPath.Length == 0 || !Directory.Exists(sdkPath))
             {
                 Console.WriteLine("Enviornmental variable \"RAPTORSDR_SDK\" is not set. Please set it before creating a project!");
+                return -1;
             }
 
             //Read params
@@ -37,16 +38,21 @@ namespace RaptorPluginUtil.Operations.Init
             Directory.CreateDirectory("client");
 
             //Generate the CSharp template
-            File.WriteAllText($"server/{developerName}.{pluginName}.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\">\n" +
-                "  <PropertyGroup>\n" +
-                "    <TargetFramework>netstandard2.0</TargetFramework>\n" +
-                "  </PropertyGroup>\n" +
-                "  <ItemGroup>\n" +
-                $"    <ProjectReference Include=\"{sdkPath}\\RaptorSDR.Server\\RaptorSDR.Server.Common\\RaptorSDR.Server.Common.csproj\" />\n" +
-                $"    <ProjectReference Include=\"{sdkPath}\\..\\RomanPort.LibSDR\\RomanPort.LibSDR\\RomanPort.LibSDR.csproj\" />\n" +
-                "  </ItemGroup>\n" +
-                "</Project>");
+            File.WriteAllText($"server/{developerName}.{pluginName}.csproj", TemplateUtil.LoadTemplate("ServerCreate.template.csproj.txt", new Dictionary<string, string>
+            {
+                {"RAPTORSDR_SDK", sdkPath }
+            }));
             File.WriteAllText($"server/{pluginName}Plugin.cs", $"using System;\nusing RaptorSDR.Server.Common;\n\nnamespace {developerName}.{pluginName}\n{{\n    public class {pluginName}Plugin : RaptorPlugin\n    {{\n        public override string DeveloperName => \"{developerName}\";\n        public override string PluginName => \"{pluginName}\";\n        \n        public {pluginName}Plugin(IRaptorControl control) : base(control)\n        {{\n                \n        }}\n        \n        public override void Init()\n        {{\n            \n        }}\n    }}\n}}");
+
+            //Generate CSharp SLN file
+            if (CliUtil.RunSlnCreate(developerName + "." + pluginName) != 0 ||
+                CliUtil.RunSlnAddProject(developerName + "." + pluginName + ".sln", sdkPath + @"\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj") != 0 ||
+                CliUtil.RunSlnAddProject(developerName + "." + pluginName + ".sln", sdkPath + @"\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj") != 0 ||
+                CliUtil.RunSlnAddProject(developerName + "." + pluginName + ".sln", "./server/" + developerName + "." + pluginName + ".csproj") != 0)
+            {
+                Console.WriteLine("Failed to create dotnet SLN file. Is dotnet installed?");
+                return -1;
+            }
 
             //Save the config file
             RaptorConfig cfg = new RaptorConfig

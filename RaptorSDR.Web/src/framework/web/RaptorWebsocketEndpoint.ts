@@ -1,16 +1,17 @@
 import RaptorWebsocket from "./RaptorWebsocket";
 import { Long, serialize, deserialize } from 'bson';
-import IRaptorEndpoint from 'raptorsdr.web.common/src/web/IRaptorEndpoint';
-import RaptorEventDispaptcher from 'raptorsdr.web.common/src/RaptorEventDispatcher';
+import IRaptorEndpoint from 'RaptorSdk/web/IRaptorEndpoint';
+import RaptorEventDispaptcher from 'RaptorSdk/RaptorEventDispatcher';
+import RaptorUtil from "../../../sdk/util/RaptorUtil";
+import { RaptorBaseEndpoint } from "../../../sdk/web/RaptorBaseEndpoint";
 
-export default class RaptorWebsocketEndpoint implements IRaptorEndpoint {
+export default class RaptorWebsocketEndpoint extends RaptorBaseEndpoint {
 
     constructor(sock: RaptorWebsocket) {
+        super();
         this.sock = sock;
-        this.OnMessage = new RaptorEventDispaptcher<any>();
         sock.OnMessageBinary = (buffer: ArrayBuffer) => {
             var payload: any = deserialize(buffer);
-            console.log(payload);
             this.OnMessage.Fire(payload);
         };
     }
@@ -19,8 +20,6 @@ export default class RaptorWebsocketEndpoint implements IRaptorEndpoint {
         var payload = serialize(message);
         this.sock.SendBinary(payload);
     }
-
-    OnMessage: RaptorEventDispaptcher<any>;
 
     private sock: RaptorWebsocket;
 

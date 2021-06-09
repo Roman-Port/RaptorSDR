@@ -15,6 +15,14 @@ export default class RaptorUiUtil {
             callback(this);
             return this;
         };
+        e.SetText = function (text: string) {
+            this.innerText = text;
+            return this;
+        };
+        e.AddClass = function (name: string) {
+            this.classList.add(name);
+            return this;
+        }
 
         //Apply
         if (classname != null) {

@@ -15,7 +15,7 @@ namespace RomanPort.SourceFile
         
         public override void Init()
         {
-            
+            RegisterSource(new PluginIqFileSource(this));
         }
     }
 }

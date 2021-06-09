@@ -11,5 +11,20 @@ body, html {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: black;
+}
+
+.loading {
+    background-image: url(icons/spinner.svg);
+    background-size: 26px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.loading_btn {
+    background-image: url(icons/spinner.svg);
+    background-size: 22px;
+    background-position: center;
+    color: transparent;
+    pointer-events: none;
+    background-repeat: no-repeat;
 }
