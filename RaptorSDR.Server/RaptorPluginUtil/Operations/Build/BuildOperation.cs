@@ -107,8 +107,15 @@ namespace RaptorPluginUtil.Operations.Build
 
         private static bool BuildFrontend(ZipArchive archive, RaptorConfig_Frontend frontend, List<RaptorBuildManifestItem> manifest)
         {
+            //Install stuff
+            if (CliUtil.RunCommand("npm", "install", "/" + frontend.name) != 0)
+            {
+                Console.WriteLine("npm install failed!");
+                return false;
+            }
+
             //Build
-            if(CliUtil.RunCommand("npx", "webpack", "/" + frontend.name) != 0)
+            if (CliUtil.RunCommand("npx", "webpack", "/" + frontend.name) != 0)
             {
                 Console.WriteLine("Webpack compilation error!");
                 return false;

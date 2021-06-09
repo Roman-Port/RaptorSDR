@@ -2,6 +2,7 @@
 using RaptorSDR.Server.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -10,7 +11,20 @@ namespace RaptorSDR.Server
 {
     public class RaptorSettings : IRaptorSettings
     {
-        public string InstallPath => @"C:\Users\Roman\source\repos\RaptorSDR\UserData\";
+        public string InstallPath
+        {
+            get
+            {
+                //Default to the current path
+                string path = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar;
+
+                //If the enviornmental variable is set, overrride
+                if(Environment.GetEnvironmentVariable("RAPTORSDR_USER") != null)
+                    path = Environment.GetEnvironmentVariable("RAPTORSDR_USER");
+
+                return path;
+            }
+        }
 
         public IPEndPoint Listening => new IPEndPoint(IPAddress.Any, 35341);
 

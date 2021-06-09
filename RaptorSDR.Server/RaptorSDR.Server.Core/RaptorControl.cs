@@ -35,6 +35,9 @@ namespace RaptorSDR.Server.Core
             this.settings = settings;
             installation = new RaptorInstallation(settings.InstallPath);
 
+            //Log info
+            Log(RaptorLogLevel.LOG, "RaptorControl", $"Using user data path {settings.InstallPath}");
+
             //Set up HTTP
             http = new RaptorHttpServer(this, settings.Listening);
             rpc = new RaptorWebSocketEndpointServer(this, http, "/rpc");
@@ -73,6 +76,14 @@ namespace RaptorSDR.Server.Core
                         fs.CopyTo(ctx.OutputStream);
                 });
             }
+
+            //Add the "index.html" page
+            http.BindToEndpoint("/", (RaptorHttpContext ctx) =>
+            {
+                ctx.ResponseHeaders.Add("Content-Type", "text/html");
+                using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("RaptorSDR.Server.Core.Web.index.html"))
+                    s.CopyTo(ctx.OutputStream);
+            });
         }
 
         public RaptorNamespace Id => new RaptorNamespace("RaptorSDR");
