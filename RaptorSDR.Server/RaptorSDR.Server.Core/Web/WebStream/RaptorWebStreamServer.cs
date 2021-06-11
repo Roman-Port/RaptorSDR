@@ -21,6 +21,8 @@ namespace RaptorSDR.Server.Core.Web.WebStream
         private RaptorControl control;
         private List<WebStream> streams = new List<WebStream>();
 
+        public event RaptorWebStreamServerClientConnectedEventArgs<WebStream> OnClientConnected;
+
         public bool HasClients => streams.Count > 0;
 
         private void OnHttpRequest(RaptorHttpContext ctx)
@@ -46,6 +48,9 @@ namespace RaptorSDR.Server.Core.Web.WebStream
                 ctx.StatusCode = System.Net.HttpStatusCode.BadRequest;
                 return;
             }
+
+            //Send event to allow initialization
+            OnClientConnected?.Invoke(clientStream);
 
             //Initialize connection
             clientCtx.InitConnection();

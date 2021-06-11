@@ -105,16 +105,25 @@ namespace RomanPort.AudioOPUS
         {
             inputSampleRate = audioSampleRate;
             configStale = true;
+            Control.Log(RaptorLogLevel.DEBUG, "OpusStreamClient", $"Made config stale; input audio now at {audioSampleRate}");
         }
 
         public void ProcessAudio(float* left, float* right, int count)
         {
             //Check if the resampler is stale
-            if(configStale)
+            if (configStale)
             {
                 resampler?.Dispose();
                 resampler = new ArbitraryStereoResampler(inputSampleRate, outputSampleRate, Control.BufferSize);
                 configStale = false;
+                Control.Log(RaptorLogLevel.DEBUG, "OpusStreamClient", $"Reconfigured audio successfully. {inputSampleRate} => {outputSampleRate}, buffer size {Control.BufferSize}");
+            }
+
+            //Make sure resampler is valid
+            if(resampler == null)
+            {
+                Control.Log(RaptorLogLevel.WARN, "OpusStreamClient", "Resampler is not configured, yet audio data is still arriving! Audio samples dropped.");
+                return;
             }
 
             //Add to resampler
@@ -122,7 +131,7 @@ namespace RomanPort.AudioOPUS
 
             //Read from resampler
             count = resampler.Output(audioBufferPtr, Control.BufferSize);
-            while(count != 0)
+            while (count != 0)
             {
                 //Write to OPUS buffer
                 opusInputBuffer.Write(audioBufferPtr, count);

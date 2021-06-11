@@ -33,10 +33,11 @@ namespace RaptorSDR.Server.Core.Radio
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        protected RaptorThreadCommand QueueWorkerCommand(RaptorThreadCommand_Action action)
+        protected RaptorThreadCommand RunWorkerCommand(RaptorThreadCommand_Action action)
         {
             RaptorThreadCommand cmd = new RaptorThreadCommand(action);
             commands.Enqueue(cmd);
+            cmd.Wait();
             return cmd;
         }
 
@@ -60,16 +61,25 @@ namespace RaptorSDR.Server.Core.Radio
 
             private RaptorThreadCommand_Action command;
             private ManualResetEvent waiter;
+            private Exception error;
 
             internal void WorkerExecute()
             {
-                command();
+                try
+                {
+                    command();
+                } catch (Exception ex)
+                {
+                    error = ex;
+                }
                 waiter.Set();
             }
 
             public void Wait()
             {
                 waiter.WaitOne();
+                if (error != null)
+                    throw error;
             }
         }
 
@@ -84,7 +94,7 @@ namespace RaptorSDR.Server.Core.Radio
         {
             dataProvider.BindOnChanging((T value, IRaptorSession session) =>
             {
-                ctx.QueueWorkerCommand(() =>
+                ctx.RunWorkerCommand(() =>
                 {
                     action(value, session);
                 });

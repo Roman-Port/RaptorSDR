@@ -5,6 +5,7 @@ import RaptorUtil from 'RaptorSdk/util/RaptorUtil';
 import RaptorConnection from '../../../RaptorConnection';
 import RaptorDataProvider from '../../RaptorDataProvider';
 import RaptorInfoProvider from '../info/RaptorInfoProvider';
+import RaptorWebError from '../../../../../sdk/errors/RaptorWebError';
 
 export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider implements IRaptorPrimitiveDataProvider<T> {
 
@@ -15,7 +16,7 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
         this.endpointSet = this.endpoint.CreateSubscription("SET_VALUE");
         this.endpointSet.OnMessage.Bind((payload: any) => {
             //Check if we're the sender
-            if (payload["sender_id"] != null && payload["sender_id"] == conn.sessionId) { return; }
+            //if (payload["sender_id"] != null && payload["sender_id"] == conn.sessionId) { return; }
 
             //Process
             var value = payload["value"] as T;
@@ -37,8 +38,8 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
         var token = RaptorUtil.GenerateRandomString(8);
 
         //Set locally
-        this.value = value;
-        this.OnChanged.Fire(value);
+        //this.value = value;
+        //this.OnChanged.Fire(value);
 
         //Create promise
         var p = new Promise<any>((resolve, reject) => {
@@ -47,7 +48,7 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
                     if (message["ok"]) {
                         resolve(null);
                     } else {
-                        reject(message["error"]);
+                        reject(new RaptorWebError(message));
                     }
                     return true;
                 }

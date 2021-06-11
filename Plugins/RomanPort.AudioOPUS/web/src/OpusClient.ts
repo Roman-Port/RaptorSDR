@@ -26,6 +26,7 @@ export default class OpusClient implements IRaptorPluginAudio {
             latencyHint: "interactive"
         });
 
+        //Create audio worklet
         await this.audioContext.audioWorklet.addModule(this.GetAudioWorkerAsDataURL());
         this.opusNode = new AudioWorkletNode(this.audioContext, 'OpusProcessor', {
             "outputChannelCount": [2]
@@ -56,6 +57,11 @@ export default class OpusClient implements IRaptorPluginAudio {
                 "payload": new Uint8Array(evt.data)
             });
         }
+
+        //Wait for connection
+        return new Promise((resolve) => {
+            this.sock.onopen = () => resolve();
+        });
     }
 
     async SetVolume(volume: number): Promise<void> {
@@ -71,6 +77,7 @@ export default class OpusClient implements IRaptorPluginAudio {
     async Stop(): Promise<void> {
         await this.initTask;
         this.sock.close();
+        await this.audioContext.close();
     }
 
     private GetAudioWorkerAsDataURL(): string {

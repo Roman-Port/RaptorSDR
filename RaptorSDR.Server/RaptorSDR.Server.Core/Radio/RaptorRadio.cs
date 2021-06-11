@@ -110,7 +110,7 @@ namespace RaptorSDR.Server.Core.Radio
         /// <param name="source"></param>
         private void RadioSource_OnSampleRateChanged(IPluginSource source)
         {
-            QueueWorkerCommand(() => WorkerConfigure());
+            RunWorkerCommand(() => WorkerConfigure());
         }
 
         /// <summary>

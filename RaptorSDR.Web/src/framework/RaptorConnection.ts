@@ -150,9 +150,6 @@ export default class RaptorConnection implements IRaptorConnection {
         for (var i = 0; i < this.plugins.length; i++) {
             this.plugins[i].Init();
         }
-
-        //Start default audio for testing purposes
-        this.EnableAudio(this.componentsAudio[0]);
     }
 
     GetDataProvider<T>(name: string): T {
@@ -218,22 +215,6 @@ export default class RaptorConnection implements IRaptorConnection {
         });
     }
 
-    ShowErrorDialog(title: string, body: string): Promise<void> {
-        return new Promise<void>((resolve) => {
-            var menu: IRaptorMenu;
-            var content = new RaptorPanelBuilder()
-                .AddText(body);
-            var dialog = new RaptorMenuBuilder(450, 200)
-                .SetTitleNegative(title)
-                .SetContent(content.Build())
-                .NavBtnAddNeutral("Okay", () => {
-                    menu.Close();
-                    resolve();
-                });
-            menu = this.ShowMenu(dialog);
-        });
-    }
-
     ShowYesNoDialogNegative(title: string, body: string, yesBtnText: string): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             var menu: IRaptorMenu;
@@ -266,16 +247,31 @@ export default class RaptorConnection implements IRaptorConnection {
         this.componentsAudio.push(audio);
     }
 
-    EnableAudio(audio: IRaptorPluginAudio) {
+    async EnableAudio(audio: IRaptorPluginAudio): Promise<void> {
+        //Check if audio is already running
+        if (this.currentAudio != null) { this.DisableAudio(); }
+
         //Set state
         this.currentAudio = audio;
         this.Log(RaptorLogLevel.DEBUG, "RaptorConnection", "Changed audio provider to " + this.currentAudio.GetName());
 
         //Start
-        this.currentAudio.Start();
+        await this.currentAudio.Start();
 
         //Set default volume
         this.currentAudio.SetVolume(this.volume);
+    }
+
+    async DisableAudio(): Promise<void> {
+        //Check if audio is already running
+        if (this.currentAudio == null) { return; }
+
+        //Set state
+        this.Log(RaptorLogLevel.DEBUG, "RaptorConnection", "Stopping current audio provider...");
+
+        //Stop
+        await this.currentAudio.Stop();
+        this.currentAudio = null;
     }
 
 }

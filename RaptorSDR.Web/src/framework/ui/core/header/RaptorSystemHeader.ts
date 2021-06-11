@@ -1,8 +1,11 @@
 import IRaptorConnection from "RaptorSdk/IRaptorConnection";
+import RaptorWebError from "../../../../../sdk/errors/RaptorWebError";
 import IRaptorMenu from "../../../../../sdk/ui/menu/IRaptorMenu";
 import RaptorMenuBuilder from "../../../../../sdk/ui/menu/RaptorMenuBuilder";
 import RaptorPanelBuilder from "../../../../../sdk/ui/panel/RaptorPanelBuilder";
+import RaptorMenuUtil from "../../../../../sdk/util/RaptorMenuUtil";
 import IRaptorPrimitiveDataProvider from "../../../../../sdk/web/providers/IRaptorPrimitiveDataProvider";
+import RaptorConnection from "../../../RaptorConnection";
 import RaptorUiUtil from "../../RaptorUiUtil";
 import RaptorSystemTuner from "./freq/RaptorSystemTuner";
 
@@ -11,7 +14,7 @@ require("./buttons.css");
 
 export default class RaptorSystemHeader {
 
-    constructor(mount: HTMLElement, conn: IRaptorConnection) {
+    constructor(mount: HTMLElement, conn: RaptorConnection) {
         //Configure
         this.conn = conn;
 
@@ -24,20 +27,31 @@ export default class RaptorSystemHeader {
         new SystemHeaderButtonBuilder("rsys_header_btn_play")
             .MakeAccent()
             .MakeDropdown()
+            .MakeSelectable("rsys_header_btn_stop", "rsys_header_btn_play", false)
             .BindToDataProvider<boolean>(this.conn.Radio.Power, (power: boolean, btn: SystemHeaderButtonBuilder) => {
-                if (power) {
-                    btn.mount.classList.add("rsys_header_btn_stop");
-                } else {
-                    btn.mount.classList.remove("rsys_header_btn_stop");
-                }
-                btn.mount.classList.remove("loading_btn");
+                btn.SetSelected(power);
+                btn.SetLoading(false);
             })
             .AddOnClick((btn: SystemHeaderButtonBuilder) => {
-                btn.mount.classList.add("loading_btn");
-                this.conn.Radio.Power.SetValue(!this.conn.Radio.Power.GetValue());
+                btn.SetLoading(true);
+                this.conn.Radio.Power.SetValue(!this.conn.Radio.Power.GetValue()).catch((error: RaptorWebError) => {
+                    btn.SetLoading(false);
+                    RaptorMenuUtil.ShowErrorMessage(this.conn, error.caption, error.body);
+                });
             })
             .Build(this.mount);
         new SystemHeaderButtonBuilder("rsys_header_btn_sound")
+            .MakeSelectable("rsys_header_btn_sound", "rsys_header_btn_mute", false)
+            .AddOnClick(async (btn: SystemHeaderButtonBuilder) => {
+                btn.SetLoading(true);
+                if (this.conn.currentAudio == null) {
+                    await this.conn.EnableAudio(this.conn.componentsAudio[0]); //TODO: Allow the user to select what audio backend to use
+                } else {
+                    await this.conn.DisableAudio();
+                }
+                btn.SetSelected(this.conn.currentAudio != null);
+                btn.SetLoading(false);
+            })
             .Build(this.mount);
         new SystemHeaderButtonBuilder("rsys_header_btn_logout")
             .AddOnClick(() => {
@@ -65,7 +79,7 @@ export default class RaptorSystemHeader {
     }
 
     private mount: HTMLElement;
-    private conn: IRaptorConnection;
+    private conn: RaptorConnection;
 
 }
 
@@ -80,6 +94,9 @@ class SystemHeaderButtonBuilder {
     mount: HTMLElement;
     clicker: HTMLElement;
 
+    private selectedClass: string;
+    private unselectedClass: string;
+
     MakeAccent(): SystemHeaderButtonBuilder {
         this.mount.classList.add("rsys_header_button_accent");
         return this;
@@ -93,6 +110,12 @@ class SystemHeaderButtonBuilder {
         return this;
     }
 
+    MakeSelectable(selectedClass: string, unselectedClass: string, defaultSelection: boolean): SystemHeaderButtonBuilder {
+        this.selectedClass = selectedClass;
+        this.unselectedClass = unselectedClass
+        return this.SetSelected(defaultSelection);
+    }
+
     AddOnClick(callback: (btn: SystemHeaderButtonBuilder) => void): SystemHeaderButtonBuilder {
         this.clicker.addEventListener("click", () => callback(this));
         return this;
@@ -102,6 +125,26 @@ class SystemHeaderButtonBuilder {
         provider.OnChanged.Bind((value: T) => {
             updatedCallback(value, this);
         });
+        return this;
+    }
+
+    SetLoading(loading: boolean): SystemHeaderButtonBuilder {
+        if (loading) {
+            this.clicker.classList.add("loading_btn");
+        } else {
+            this.clicker.classList.remove("loading_btn");
+        }
+        return this;
+    }
+
+    SetSelected(selected: boolean): SystemHeaderButtonBuilder {
+        if (selected) {
+            this.mount.classList.add(this.selectedClass);
+            this.mount.classList.remove(this.unselectedClass);
+        } else {
+            this.mount.classList.remove(this.selectedClass);
+            this.mount.classList.add(this.unselectedClass);
+        }
         return this;
     }
 

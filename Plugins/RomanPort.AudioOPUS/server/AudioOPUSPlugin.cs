@@ -11,6 +11,7 @@ namespace RomanPort.AudioOPUS
         public override string PluginName => "AudioOPUS";
 
         private IRaptorWebStreamServer<OpusStreamClient> stream;
+        private float inputSampleRate;
 
         public int PriorityWeight => 100;
         public string DisplayName => "OPUS Low-Latency Audio";
@@ -24,13 +25,21 @@ namespace RomanPort.AudioOPUS
         {
             //Create stream
             stream = Control.RegisterWebStream<OpusStreamClient>(Id.Then("Stream"));
+            stream.OnClientConnected += Stream_OnClientConnected;
 
             //Register
             Control.RegisterPluginAudio(this, this);
         }
 
+        private void Stream_OnClientConnected(OpusStreamClient client)
+        {
+            if(inputSampleRate != 0)
+                client.ConfigureAudio(inputSampleRate);
+        }
+
         public void ReconfigureAudio(float sampleRate)
         {
+            inputSampleRate = sampleRate;
             stream.ForEachClient((OpusStreamClient c) => c.ConfigureAudio(sampleRate));
         }
 
