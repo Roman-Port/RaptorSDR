@@ -5,10 +5,13 @@ using System.Text;
 namespace RaptorSDR.Server.Common.WebStream
 {
     public delegate void ForEachClientEnumerate<WebStream>(WebStream stream);
+    public delegate void RaptorWebStreamServerClientConnectedEventArgs<WebStream>(WebStream stream);
 
     public interface IRaptorWebStreamServer<WebStream>
     {
         bool HasClients { get; }
         void ForEachClient(ForEachClientEnumerate<WebStream> enumerate);
+
+        event RaptorWebStreamServerClientConnectedEventArgs<WebStream> OnClientConnected;
     }
 }
