@@ -55,22 +55,12 @@ export default class RaptorSystemHeader {
             .Build(this.mount);
         new SystemHeaderButtonBuilder("rsys_header_btn_logout")
             .AddOnClick(() => {
-                var menu: IRaptorMenu;
-                var builder = new RaptorMenuBuilder(400, 220)
-                    .SetTitleNegative("Log Out")
-                    .SetContent(new RaptorPanelBuilder()
-                        .AddText("Are you sure you want to log out of RaptorSDR?")
-                        .Build()
-                    )
-                    .NavBtnAddNegative("Log Out", () => {
+                this.conn.dialog.ShowYesNoDialogNegative("Log Out", "Are you sure you want to sign out of RaptorSDR?", "Log Out").then((value: boolean) => {
+                    if (value) {
                         localStorage.setItem("RAPTOR_REFRESH_TOKEN", null);
-                        menu.Close();
                         window.location.reload();
-                    })
-                    .NavBtnAddNeutral("Cancel", () => {
-                        menu.Close();
-                    });
-                menu = this.conn.ShowMenu(builder);
+                    }
+                });
             })
             .Build(this.mount);
 

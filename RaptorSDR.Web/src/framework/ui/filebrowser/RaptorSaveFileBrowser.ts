@@ -34,7 +34,7 @@ export default class RaptorSaveFileBrowser extends RaptorFileBrowser {
             var info = await this.conn.IoGetFileAccessInfo(this.currentFilename);
 
             //If we're about to overwrite something, prompt
-            if (info.exists && !await this.conn.ShowYesNoDialogNegative("File Exists", "Are you sure you want to overwrite this file?", "Overwrite")) {
+            if (info.exists && !await this.conn.dialog.ShowYesNoDialogNegative("File Exists", "Are you sure you want to overwrite this file?", "Overwrite")) {
                 builder.NavBtnSetState("save", RaptorMenuButtonStatus.Enabled);
                 return;
             }

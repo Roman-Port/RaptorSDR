@@ -7,11 +7,11 @@ import RaptorDataProvider from '../../RaptorDataProvider';
 import RaptorInfoProvider from '../info/RaptorInfoProvider';
 import RaptorWebError from '../../../../../sdk/errors/RaptorWebError';
 
-export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider implements IRaptorPrimitiveDataProvider<T> {
+export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider<T> implements IRaptorPrimitiveDataProvider<T> {
 
     constructor(conn: RaptorConnection, info: RaptorInfoProvider) {
         super(conn, info);
-        this.OnChanged = new RaptorEventDispatcher<T>();
+        this.OnChanged = this;
         this.endpointAck = this.endpoint.CreateSubscription("ACK");
         this.endpointSet = this.endpoint.CreateSubscription("SET_VALUE");
         this.endpointSet.OnMessage.Bind((payload: any) => {
@@ -28,6 +28,11 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider i
     private value: T;
     protected endpointSet: IRaptorEndpoint;
     protected endpointAck: IRaptorEndpoint;
+
+    Bind(callback: (payload: T) => any) {
+        super.Bind(callback);
+        callback(this.GetValue()); //automatically send to new clients
+    }
 
     GetValue(): T {
         return this.value;

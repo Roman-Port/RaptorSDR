@@ -1,27 +1,27 @@
 import IRaptorPluginRegisteredWindow from "RaptorSdk/plugin/IRaptorPluginRegisteredWindow";
 import IRaptorPluginRegisteredWindowInstance from "RaptorSdk/plugin/IRaptorPluginRegisteredWindowInstance";
 import IRaptorWindow from "RaptorSdk/ui/core/IRaptorWindow";
+import IRaptorWindowClassInfo from "../../../sdk/plugin/window/IRaptorWindowClassInfo";
+import IRaptorWindowInstanceInfo from "../../../sdk/plugin/window/IRaptorWindowInstanceInfo";
 import RaptorApp from "../../RaptorApp";
 import RaptorPluginRegisteredWindowInstance from "./RaptorPluginRegisteredWindowInstance";
 
 export default class RaptorPluginRegisteredWindow implements IRaptorPluginRegisteredWindow {
 
-    constructor(app: RaptorApp, name: string, create: (info: any) => IRaptorWindow) {
+    constructor(app: RaptorApp, info: IRaptorWindowClassInfo) {
         this.app = app;
-        this.name = name;
-        this.create = create;
+        this.info = info;
     }
 
     app: RaptorApp;
-    name: string;
-    create: (info: any) => IRaptorWindow;
+    info: IRaptorWindowClassInfo;
 
     GetName(): string {
-        return this.name;
+        return this.info.displayName;
     }
 
-    CreateInstance(name: string, info: any): IRaptorPluginRegisteredWindowInstance {
-        return new RaptorPluginRegisteredWindowInstance(this, info);
+    RegisterInstance(info: IRaptorWindowInstanceInfo): IRaptorPluginRegisteredWindowInstance {
+        return this.app.windowStore.RegisterInstance(this, info);
     }
 
 }

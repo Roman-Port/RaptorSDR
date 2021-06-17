@@ -1,6 +1,7 @@
 import IRaptorPlugin from 'RaptorSdk/plugin/IRaptorPlugin';
 import IRaptorPluginContext from 'RaptorSdk/plugin/IRaptorPluginContext';
-import { RaptorWindowMounting } from 'RaptorSdk/ui/core/RaptorWindowMounting';
+import { RaptorWindowMounting } from '../sdk/ui/core/RaptorWindowMounting';
+import RaptorSize from '../sdk/ui/RaptorSize';
 import RdsWindow from './RdsWindow';
 
 export default class ViewRdsBarPlugin implements IRaptorPlugin {
@@ -13,14 +14,22 @@ export default class ViewRdsBarPlugin implements IRaptorPlugin {
 
     Init() {
         //Register window
-        console.log(this.ctx);
-        var win = this.ctx.RegisterWindowClass("RDS Panel", (info: any) => new RdsWindow(this.ctx.conn, info));
+        var win = this.ctx.RegisterWindowClass({
+            id: "RomanPort.RdsBarPlugin.RdsBar",
+            displayName: "RDS",
+            createInstance: (info: any, persist: any) => new RdsWindow(this.ctx.conn, info),
+            hideHeader: true,
+            sizeDefault: new RaptorSize(400, 40),
+            sizeMax: new RaptorSize(9999, 40),
+            sizeMin: new RaptorSize(100, 40)
+        });
 
-        console.log(win);
-        var wini = win.CreateInstance("Main", {});
-
-        console.log(wini);
-        wini.RequestMount(RaptorWindowMounting.Top, 0);
+        //Register instance
+        win.RegisterInstance({
+            displayName: "RDS Info Bar",
+            info: {},
+            id: "rds"
+        }).RequestMount(RaptorWindowMounting.Top, 0);
     }
 
 }

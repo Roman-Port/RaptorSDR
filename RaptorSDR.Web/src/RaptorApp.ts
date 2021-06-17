@@ -1,7 +1,7 @@
 import RaptorConnection from "./framework/RaptorConnection";
 import RaptorSystemHeader from "./framework/ui/core/header/RaptorSystemHeader";
-import RaptorWindowContainer from "./framework/ui/core/window/RaptorWindowContainer";
-import RaptorWindowView from "./framework/ui/core/window/RaptorWindowTab";
+import RaptorMenuWindowStore from "./framework/ui/core/xwindow/RaptorMenuWindowStore";
+import RaptorRootWindowManager from "./framework/ui/core/xwindow/RaptorRootWindowManager";
 import RaptorLoginPage from "./framework/ui/login/RaptorLoginPage";
 import RaptorMenuMount from "./framework/ui/menu/RaptorMenuMount";
 import RaptorUiUtil from "./framework/ui/RaptorUiUtil";
@@ -12,6 +12,9 @@ require("./main.css");
 export default class RaptorApp {
 
     constructor() {
+        //Create store
+        this.windowStore = new RaptorMenuWindowStore(this);
+
         //Create connection
         this.conn = new RaptorConnection(this, window.location.host);
     }
@@ -19,15 +22,17 @@ export default class RaptorApp {
     conn: RaptorConnection;
     mount: HTMLElement;
     uiHeader: RaptorSystemHeader;
-    uiBody: RaptorWindowView;
     menuMount: RaptorMenuMount;
+    menuManager: RaptorRootWindowManager;
+
+    windowStore: RaptorMenuWindowStore;
 
     async Init() {
         //Create basic views
         this.mount = RaptorUiUtil.CreateDom("div", "raptor", document.body);
         this.uiHeader = new RaptorSystemHeader(this.mount, this.conn);
-        this.uiBody = new RaptorWindowView(this.mount);
         this.menuMount = new RaptorMenuMount(this.mount);
+        this.menuManager = new RaptorRootWindowManager(this);
 
         //Create preloader view
         var preloader = new RaptorLoginPage(this.mount, this.conn);
@@ -57,6 +62,7 @@ export default class RaptorApp {
 
         //Populate complex UIs
         this.uiHeader.Populate();
+        this.menuManager.Initialize();
 
         //Reveal
         preloader.Remove();

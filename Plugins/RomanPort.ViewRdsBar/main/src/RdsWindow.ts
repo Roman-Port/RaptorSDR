@@ -1,6 +1,6 @@
 import IRaptorConnection from "RaptorSdk/IRaptorConnection";
-import IRaptorWindow from "RaptorSdk/ui/core/IRaptorWindow";
-import RaptorSize from "RaptorSdk/ui/RaptorSize";
+import IRaptorWindow from "../sdk/ui/core/IRaptorWindow";
+import RaptorSize from "../sdk/ui/RaptorSize";
 import IRaptorPrimitiveDataProvider from "../sdk/web/providers/IRaptorPrimitiveDataProvider";
 import PiCodeDb from "./PiCodeDb";
 import PiCodeEntry from "./PiCodeEntry";
@@ -51,6 +51,10 @@ export default class RdsWindow implements IRaptorWindow {
 
     GetMaxSize(): RaptorSize {
         return new RaptorSize(100000, 40);
+    }
+
+    ResizeWindow(width: number, height: number): void {
+        
     }
 
     CreateWindow(window: HTMLElement): void {

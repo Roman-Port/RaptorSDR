@@ -1,0 +1,135 @@
+.sys_xwindowwrap {
+    background: black;
+    position: absolute;
+}
+
+.sys_xwindowwrap_component_grabcover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 15px;
+    color: white;
+    text-align: center;
+    line-height: 60px;
+    background: #2C2F33;
+    display: none;
+    z-index:999999;
+}
+
+.sys_xwindowwrap_component_header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: black;
+    display: none;
+    color: white;
+    font-size: 15px;
+    flex-direction: row;
+    vertical-align: middle;
+    align-items: center;
+    padding: 0 15px;
+}
+
+.sys_xwindowwrap_component_header_title {
+    margin-right: auto;
+}
+
+.sys_xwindowwrap_component_header_btn {
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    margin-left: 3px;
+    cursor:pointer;
+}
+
+.sys_xwindowwrap_component_content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: black;
+}
+
+/* Status: Grabbed */
+
+.sys_xwindowwrap_grabbed {
+    border-radius: 5px;
+    z-index: 9999999;
+    box-shadow: 0px 3px 15px 0px rgba(1, 24, 25, 0.15);
+}
+
+.sys_xwindowwrap_grabbed .sys_xwindowwrap_component_grabcover {
+    display: block;
+}
+
+.sys_xwindowwrap_grabbed .sys_xwindowwrap_component_header {
+    display: none;
+}
+
+.sys_xwindowwrap_grabbed .sys_xwindowwrap_component_content {
+    display: none;
+}
+
+/* Status: Editing */
+
+.sys_xwindow_editing .sys_xwindowwrap_component_header {
+    display:flex;
+    z-index:999;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+}
+
+/* Status: Locked header */
+
+.sys_xwindowwrap_headerlocked .sys_xwindowwrap_component_header {
+    display: flex;
+    z-index: 999;
+}
+
+.sys_xwindowwrap_headerlocked .sys_xwindowwrap_component_content {
+    top:40px;
+}
+
+/* Misc */
+
+.sys_xwindowwrap_component_header_btn_close {
+    background-image:url(../../../../icons/close_white.svg);
+}
+
+.sys_xwindowwrap_error {
+    background-image: url(../../../../icons/warn_white.svg);
+    background-repeat: no-repeat;
+    background-size: 24px;
+    background-position-x: 15px;
+    background-position-y: center;
+    padding: 15px;
+    padding-left: 54px;
+    font-size: 15px;
+    background-color: #444446;
+    border-radius: 5px;
+    margin: auto;
+    border: 1px solid #5a5c5d;
+}
+
+.sys_xwindowwrap_error_container {
+    display: flex;
+    background: #2c2f33;
+    border: 1px solid #ff4545;
+    padding: 10px;
+    cursor:pointer;
+}
+
+.sys_xwindowwrap_error_top {
+    font-weight:600;
+    color: white;
+}
+
+.sys_xwindowwrap_error_bottom {
+    color: #e6e6e6;
+}

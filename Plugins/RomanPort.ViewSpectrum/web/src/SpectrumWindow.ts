@@ -32,18 +32,6 @@ export default class SpectrumWindow implements IRaptorWindow {
         return this.info.name;
     }
 
-    GetIsHeaderless(): boolean {
-        return false;
-    }
-
-    GetMinSize(): RaptorSize {
-        return new RaptorSize(100, 100);
-    }
-
-    GetMaxSize(): RaptorSize {
-        return new RaptorSize(100000, 100000);
-    }
-
     CreateWindow(win: HTMLElement): void {
         //Configure
         this.window = win;

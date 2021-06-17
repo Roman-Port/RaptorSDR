@@ -10,6 +10,7 @@ import IRaptorPluginRegisteredWindow from 'RaptorSdk/plugin/IRaptorPluginRegiste
 import RaptorPluginRegisteredWindow from './RaptorPluginRegisteredWindow';
 import RaptorConnection from '../RaptorConnection';
 import IRaptorPluginAudio from '../../../sdk/plugin/components/IRaptorPluginAudio';
+import IRaptorWindowClassInfo from '../../../sdk/plugin/window/IRaptorWindowClassInfo';
 
 export default class RaptorPluginContext implements IRaptorPluginContext {
 
@@ -74,8 +75,8 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
         }
     }
 
-    RegisterWindowClass(displayName: string, create: (info: any) => IRaptorWindow): IRaptorPluginRegisteredWindow {
-        return new RaptorPluginRegisteredWindow(this.conn.app, displayName, create);
+    RegisterWindowClass(info: IRaptorWindowClassInfo): IRaptorPluginRegisteredWindow {
+        return this.conn.app.windowStore.RegisterClass(info);
     }
 
     RegisterComponentAudio(audio: IRaptorPluginAudio): void {

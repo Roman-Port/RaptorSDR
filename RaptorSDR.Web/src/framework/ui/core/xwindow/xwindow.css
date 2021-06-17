@@ -1,0 +1,69 @@
+.sys_xwindow_root {
+    display: flex;
+    flex-direction: column;
+    background: black;
+    overflow: hidden;
+    position: absolute;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.sys_xwindow_root_nonediting .sys_xwindow_dropzone {
+    display: none !important;
+}
+
+.sys_xwindow_dropzone {
+    position:absolute;
+    z-index:99999;
+}
+
+.sys_window_dropzone_highlight {
+    background: var(--color-accent);
+    opacity: 0;
+    transform: scale(0);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: opacity ease-in-out 110ms, transform cubic-bezier(0.18, 0.99, 0.58, 1) 110ms;
+    pointer-events: none;
+}
+
+.sys_xwindow_dropzone:hover .sys_window_dropzone_highlight {
+    opacity: 0.5;
+    transform: scale(0.5);
+}
+
+.sys_xwindow_dropzone_largehighlight:hover .sys_window_dropzone_highlight {
+    opacity: 0.5;
+    transform: scale(1);
+}
+
+.sys_xwindow_window {
+    opacity: 1;
+    transition: opacity ease-in-out 100ms;
+}
+
+.sys_xwindow_removeanim {
+    animation: sys_xwindow_removeanim 200ms ease-in-out 1;
+    opacity: 0;
+    transform: scale(0);
+}
+
+@keyframes sys_xwindow_removeanim {
+    from {
+        opacity:1;
+        transform:scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+
+.sys_xwindow_editing {
+
+}

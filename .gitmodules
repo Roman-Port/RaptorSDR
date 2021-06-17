@@ -10,3 +10,9 @@
 [submodule "RaptorSDR.Web/sdk"]
 	path = RaptorSDR.Web/sdk
 	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "Plugins/RomanPort.ViewRdsBar/sdk"]
+	path = Plugins/RomanPort.ViewRdsBar/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "Plugins/RomanPort.ViewRdsBar/main/sdk"]
+	path = Plugins/RomanPort.ViewRdsBar/main/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common

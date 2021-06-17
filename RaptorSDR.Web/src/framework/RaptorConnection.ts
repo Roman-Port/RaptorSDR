@@ -29,6 +29,9 @@ import RaptorStream from "./web/RaptorStream";
 import IRaptorStream from "../../sdk/web/IRaptorStream";
 import IRaptorPluginAudio from "../../sdk/plugin/components/IRaptorPluginAudio";
 import { RaptorLogLevel } from "../../sdk/RaptorLogLevel";
+import IRaptorDataProvider from "../../sdk/web/IRaptorDataProvider";
+import RaptorDialogUtil from "./RaptorDialogUtil";
+import RaptorMenuWindowStore from "./ui/core/xwindow/RaptorMenuWindowStore";
 
 export default class RaptorConnection implements IRaptorConnection {
 
@@ -70,12 +73,13 @@ export default class RaptorConnection implements IRaptorConnection {
     volume: number = 1;
     Radio: IRaptorRadio;
     VFO: IRaptorVFO;
+    dialog: RaptorDialogUtil = new RaptorDialogUtil(this);
 
     rpcDispatcherPlugin: RaptorDispatcherOpcode;
     rpcDispatcherDataProvider: RaptorDispatcherOpcode;
 
     plugins: RaptorPluginContext[];
-    dataProviders: { [key: string]: RaptorDataProvider };
+    dataProviders: { [key: string]: IRaptorDataProvider };
     componentsAudio: IRaptorPluginAudio[] = [];
 
     currentAudio: IRaptorPluginAudio;
@@ -212,26 +216,6 @@ export default class RaptorConnection implements IRaptorConnection {
                 resolve(filename);
             });
             browser.Show();
-        });
-    }
-
-    ShowYesNoDialogNegative(title: string, body: string, yesBtnText: string): Promise<boolean> {
-        return new Promise<boolean>((resolve) => {
-            var menu: IRaptorMenu;
-            var content = new RaptorPanelBuilder()
-                .AddText(body);
-            var dialog = new RaptorMenuBuilder(450, 200)
-                .SetTitleNegative(title)
-                .SetContent(content.Build())
-                .NavBtnAddNeutral("Cancel", () => {
-                    menu.Close();
-                    resolve(false);
-                })
-                .NavBtnAddNegative(yesBtnText, () => {
-                    menu.Close();
-                    resolve(true);
-                });
-            menu = this.ShowMenu(dialog);
         });
     }
 

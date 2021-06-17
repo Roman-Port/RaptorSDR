@@ -1,11 +1,13 @@
 import RaptorDispatcherOpcode from 'RaptorSdk/web/dispatchers/RaptorDispatcherOpcode';
 import IRaptorDataProvider from 'RaptorSdk/web/IRaptorDataProvider';
+import RaptorEventDispaptcher from '../../../sdk/RaptorEventDispatcher';
 import RaptorConnection from '../RaptorConnection';
 import RaptorInfoProvider from './entities/info/RaptorInfoProvider';
 
-export default class RaptorDataProvider implements IRaptorDataProvider {
+export default class RaptorDataProvider<T> extends RaptorEventDispaptcher<T> implements IRaptorDataProvider {
 
     constructor(conn: RaptorConnection, info: RaptorInfoProvider) {
+        super();
         this.info = info;
         this.endpoint = new RaptorDispatcherOpcode(conn.rpcDispatcherDataProvider.CreateSubscription(info.id));
     }
