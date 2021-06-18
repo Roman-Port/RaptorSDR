@@ -18,8 +18,6 @@
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "@types/resize-observer-browser": "^0.1.5",
-    "bson": "^4.4.0",
-    "raptorsdr.web.common": "file:../RaptorSDR.Web.Common"
+    "@types/resize-observer-browser": "^0.1.5"
   }
 }

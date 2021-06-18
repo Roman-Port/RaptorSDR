@@ -1,5 +1,4 @@
 import RaptorWebsocket from "./RaptorWebsocket";
-import { Long, serialize, deserialize } from 'bson';
 import IRaptorEndpoint from 'RaptorSdk/web/IRaptorEndpoint';
 import RaptorEventDispaptcher from 'RaptorSdk/RaptorEventDispatcher';
 import RaptorUtil from "../../../sdk/util/RaptorUtil";
@@ -10,15 +9,13 @@ export default class RaptorWebsocketEndpoint extends RaptorBaseEndpoint {
     constructor(sock: RaptorWebsocket) {
         super();
         this.sock = sock;
-        sock.OnMessageBinary = (buffer: ArrayBuffer) => {
-            var payload: any = deserialize(buffer);
-            this.OnMessage.Fire(payload);
+        sock.OnMessageString = (text: string) => {
+            this.OnMessage.Fire(JSON.parse(text));
         };
     }
 
     SendMessage(message: any): void {
-        var payload = serialize(message);
-        this.sock.SendBinary(payload);
+        this.sock.SendString(JSON.stringify(message));
     }
 
     private sock: RaptorWebsocket;

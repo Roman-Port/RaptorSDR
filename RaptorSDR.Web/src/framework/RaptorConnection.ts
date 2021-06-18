@@ -147,7 +147,7 @@ export default class RaptorConnection implements IRaptorConnection {
         });
 
         //Connect to sock
-        this.rpcSock.OpenUrl(this.GetUrl("ws", "/rpc?access_token=" + this.token));
+        this.rpcSock.OpenUrl(this.GetUrl("ws", "/rpc?encoding=JSON&access_token=" + this.token));
 
         //Wait for login to complete
         this.sessionId = await this.loginTask;
