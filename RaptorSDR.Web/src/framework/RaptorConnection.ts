@@ -49,6 +49,7 @@ export default class RaptorConnection implements IRaptorConnection {
         this.rpcSockFileDrives = this.rpc.CreateSubscription("FILE_GET_ROOTS");
         this.rpcSockFileListing = this.rpc.CreateSubscription("FILE_DIR_LISTING");
         this.rpcSockFileAccess = this.rpc.CreateSubscription("FILE_CHECK_ACCESS");
+        this.rpcPing = this.rpc.CreateSubscription("PING");
 
         //Request info now
         this.infoTask = this.GetHttpRequest("/info", "GET")
@@ -66,6 +67,7 @@ export default class RaptorConnection implements IRaptorConnection {
     private rpcSockFileDrives: IRaptorEndpoint;
     private rpcSockFileListing: IRaptorEndpoint;
     private rpcSockFileAccess: IRaptorEndpoint;
+    private rpcPing: IRaptorEndpoint;
     private rpc: RaptorDispatcherOpcode;
 
     token: string;
@@ -256,6 +258,12 @@ export default class RaptorConnection implements IRaptorConnection {
         //Stop
         await this.currentAudio.Stop();
         this.currentAudio = null;
+    }
+
+    async PingServer(): Promise<number> {
+        var start = Date.now();
+        await this.rpcPing.SendMessageGetResponse({});
+        return Date.now() - start;
     }
 
 }

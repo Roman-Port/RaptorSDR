@@ -69,7 +69,10 @@ export default class StripeCell extends BaseChildWindowMount {
 
     SerializeSave() {
         if (this.isSubStripe) {
-            return this.subStripe.SerializeSave();
+            return {
+                "size": this.windowSize,
+                "substripe": this.subStripe.SerializeSave()
+            };
         } else {
             return {
                 "size": this.windowSize,
@@ -80,7 +83,8 @@ export default class StripeCell extends BaseChildWindowMount {
 
     SerializeRestore(data: any) {
         if (this.isSubStripe) {
-            this.subStripe.SerializeRestore(data);
+            this.windowSize = data["size"];
+            this.subStripe.SerializeRestore(data["substripe"]);
         } else {
             this.windowSize = data["size"];
             this.AddWindow(new RaptorWindowWrapper(this.root as RaptorRootWindowManager, data["info"]));

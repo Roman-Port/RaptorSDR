@@ -147,7 +147,7 @@ export default class RaptorRootWindowManager extends BaseWindowMount {
         this.stripe.UpdateLayout(this.GetWidth(), this.GetHeight(), 0, 0, 0, 0);
 
         //test
-        this.EnterEditingMode();
+        //this.EnterEditingMode();
     }
 
     EnterEditingMode() {

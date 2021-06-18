@@ -44,7 +44,13 @@
     background-repeat: no-repeat;
     background-size: 20px;
     margin-left: 3px;
-    cursor:pointer;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 70ms cubic-bezier(0.05, 1, 0.58, 1);
+}
+
+.sys_xwindowwrap_component_header:hover .sys_xwindowwrap_component_header_btn {
+    opacity: 1;
 }
 
 .sys_xwindowwrap_component_content {

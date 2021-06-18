@@ -1,0 +1,86 @@
+.rsys_headerstatus_indicator {
+    padding: 8px;
+    margin-left: 5px;
+    background: #23272a;
+    border: 1px solid #444446;
+    background-size: 20px;
+    padding-left: 36px;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position-x: 8px;
+    background-position-y: center;
+    position: relative;
+}
+
+.rsys_headerstatus_text {
+    font-size: 13px;
+    color: #ababab;
+    text-transform: uppercase;
+    display: none;
+    margin: auto 0;
+}
+
+.rsys_headerstatus_graphic {
+    flex-grow: 1;
+    margin-left: 1px;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.rsys_headerstatus_container {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+}
+
+/* Alt view: Disables graphics and shows raw numbers instead */
+
+.rsys_headerstatus_indicator_alt {
+    align-content:center;
+    vertical-align: middle;
+}
+
+.rsys_headerstatus_indicator_alt .rsys_headerstatus_graphic {
+    display: none;
+}
+
+.rsys_headerstatus_indicator_alt .rsys_headerstatus_text {
+    display: block;
+}
+
+/* Icons */
+
+.rsys_headerstatus_icon_cpu {
+    background-image: url(icons/cpu.svg);
+}
+
+.rsys_headerstatus_icon_net {
+    background-image: url(icons/net.svg);
+}
+
+/* Tips */
+
+.rsys_headerstatus_tip {
+    position: absolute;
+    top: 30px;
+    right: -1px;
+    color: #b5b5b5;
+    width: 290px;
+    opacity: 0;
+    transition: top 80ms cubic-bezier(0.25, 1.13, 0.78, 1.05), opacity 80ms cubic-bezier(0.15, 0.77, 0.58, 1);
+}
+
+.rsys_headerstatus_tip_title {
+    color: white;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.rsys_headerstatus_indicator:hover .rsys_headerstatus_tip {
+    top: 38px;
+    opacity: 1;
+}

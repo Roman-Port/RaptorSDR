@@ -8,6 +8,8 @@ import IRaptorPrimitiveDataProvider from "../../../../../sdk/web/providers/IRapt
 import RaptorConnection from "../../../RaptorConnection";
 import RaptorUiUtil from "../../RaptorUiUtil";
 import RaptorSystemTuner from "./freq/RaptorSystemTuner";
+import SystemHeaderStatusIcon from "./status/SystemHeaderStatusIcon";
+import SystemHeaderStatusIconNetwork from "./status/SystemHeaderStatusIconNetwork";
 
 require("./header.css");
 require("./buttons.css");
@@ -66,10 +68,20 @@ export default class RaptorSystemHeader {
 
         //Make tuner
         new RaptorSystemTuner(this.mount, this.conn);
+
+        //Make status indicators
+        var statusContainer = RaptorUiUtil.CreateDom("div", "rsys_headerstatus_container", this.mount);
+        this.statusCpu = new SystemHeaderStatusIcon(statusContainer, 0, 10, false, "rsys_headerstatus_icon_cpu", "ms")
+            .AddTipText("CPU Usage", "Shows the CPU usage of the server. Calculated by the amount of time <i>not</i> processing samples every second.<br><br>Higher is better.");
+        this.statusNet = new SystemHeaderStatusIconNetwork(statusContainer, this.conn)
+            .AddTipText("Network Ping", "Shows the network latency between the server and this client.<br><br>Lower is better.");
     }
 
     private mount: HTMLElement;
     private conn: RaptorConnection;
+
+    private statusCpu: SystemHeaderStatusIcon;
+    private statusNet: SystemHeaderStatusIcon;
 
 }
 
