@@ -33,6 +33,7 @@ import IRaptorDataProvider from "../../sdk/web/IRaptorDataProvider";
 import RaptorDialogUtil from "./RaptorDialogUtil";
 import RaptorMenuWindowStore from "./ui/core/xwindow/RaptorMenuWindowStore";
 import RaptorEventDispaptcher from "../../sdk/RaptorEventDispatcher";
+import RaptorOpenFileBrowser from "./ui/filebrowser/RaptorOpenFileBrowser";
 
 export default class RaptorConnection implements IRaptorConnection {
 
@@ -227,7 +228,12 @@ export default class RaptorConnection implements IRaptorConnection {
     }
 
     CreateFileOpenDialog(title: string): Promise<string> {
-        return null;
+        return new Promise<string>((resolve) => {
+            var browser = new RaptorOpenFileBrowser(this, title, (filename: string) => {
+                resolve(filename);
+            });
+            browser.Show();
+        });
     }
 
     Log(level: RaptorLogLevel, topic: string, message: string): void {

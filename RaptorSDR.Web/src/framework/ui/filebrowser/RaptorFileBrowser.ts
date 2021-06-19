@@ -318,7 +318,8 @@ export default class RaptorFileBrowser {
             var d = list[i];
 
             //Format date
-            var date = d.date.toLocaleDateString() + " " + d.date.toLocaleTimeString();
+            var dateData = new Date(d.date);
+            var date = dateData.toLocaleDateString() + " " + dateData.toLocaleTimeString();
 
             //Determine the kind of item this is and set it up
             var icon: string;
