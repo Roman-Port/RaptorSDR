@@ -1,5 +1,6 @@
 import IRaptorConnection from "RaptorSdk/IRaptorConnection";
 import RaptorWebError from "../../../../../sdk/errors/RaptorWebError";
+import IRaptorPluginAudio from "../../../../../sdk/plugin/components/IRaptorPluginAudio";
 import IRaptorMenu from "../../../../../sdk/ui/menu/IRaptorMenu";
 import RaptorMenuBuilder from "../../../../../sdk/ui/menu/RaptorMenuBuilder";
 import RaptorPanelBuilder from "../../../../../sdk/ui/panel/RaptorPanelBuilder";
@@ -16,12 +17,16 @@ require("./buttons.css");
 
 export default class RaptorSystemHeader {
 
-    constructor(mount: HTMLElement, conn: RaptorConnection) {
+    constructor(mainMount: HTMLElement, sidebarMount: HTMLElement, conn: RaptorConnection) {
         //Configure
         this.conn = conn;
 
-        //Create
-        this.mount = RaptorUiUtil.CreateDom("div", "rsys_header", mount);
+        //Create the "main" header which is the one across all views
+        this.mainView = RaptorUiUtil.CreateDom("div", "rsys_header", mainMount)
+            .AddClass("rsys_header_main");
+
+        //Create the "side view" which is on the sidebar
+        this.sideView = RaptorUiUtil.CreateDom("div", "rsys_header", sidebarMount);
     }
 
     Populate() {
@@ -41,7 +46,12 @@ export default class RaptorSystemHeader {
                     RaptorMenuUtil.ShowErrorMessage(this.conn, error.caption, error.body);
                 });
             })
-            .Build(this.mount);
+            .Build(this.sideView);
+        new SystemHeaderButtonBuilder("rsys_header_btn_settings")
+            .AddOnClick(() => {
+                //todo
+            })
+            .Build(this.sideView);
         new SystemHeaderButtonBuilder("rsys_header_btn_sound")
             .MakeSelectable("rsys_header_btn_sound", "rsys_header_btn_mute", false)
             .AddOnClick(async (btn: SystemHeaderButtonBuilder) => {
@@ -54,30 +64,38 @@ export default class RaptorSystemHeader {
                 btn.SetSelected(this.conn.currentAudio != null);
                 btn.SetLoading(false);
             })
-            .Build(this.mount);
-        new SystemHeaderButtonBuilder("rsys_header_btn_logout")
-            .AddOnClick(() => {
-                this.conn.dialog.ShowYesNoDialogNegative("Log Out", "Are you sure you want to sign out of RaptorSDR?", "Log Out").then((value: boolean) => {
-                    if (value) {
-                        localStorage.setItem("RAPTOR_REFRESH_TOKEN", null);
-                        window.location.reload();
-                    }
-                });
-            })
-            .Build(this.mount);
+            .Build(this.sideView);
+
+        //Create volume slider
+        var volumeSlider = RaptorUiUtil.CreateDom("input", null, this.sideView) as any as HTMLInputElement;
+        volumeSlider.type = "range";
+        volumeSlider.max = "100";
+        volumeSlider.min = "0";
+        volumeSlider.addEventListener("change", () => {
+            this.conn.SetAudioVolume(parseFloat(volumeSlider.value) / 100);
+        });
+        volumeSlider.disabled = this.conn.GetAudioDevice() == null;
+        volumeSlider.value = (this.conn.GetAudioVolume() * 100).toString();
+        this.conn.OnAudioDeviceChanged.Bind((device: IRaptorPluginAudio) => {
+            volumeSlider.disabled = device == null;
+        });
+        this.conn.OnAudioVolumeChanged.Bind((volume: number) => {
+            volumeSlider.value = (volume * 100).toString();
+        });
 
         //Make tuner
-        new RaptorSystemTuner(this.mount, this.conn);
+        new RaptorSystemTuner(this.mainView, this.conn);
 
         //Make status indicators
-        var statusContainer = RaptorUiUtil.CreateDom("div", "rsys_headerstatus_container", this.mount);
+        var statusContainer = RaptorUiUtil.CreateDom("div", "rsys_headerstatus_container", this.mainView);
         this.statusCpu = new SystemHeaderStatusIcon(statusContainer, 0, 10, false, "rsys_headerstatus_icon_cpu", "ms")
             .AddTipText("CPU Usage", "Shows the CPU usage of the server. Calculated by the amount of time <i>not</i> processing samples every second.<br><br>Higher is better.");
         this.statusNet = new SystemHeaderStatusIconNetwork(statusContainer, this.conn)
             .AddTipText("Network Ping", "Shows the network latency between the server and this client.<br><br>Lower is better.");
     }
 
-    private mount: HTMLElement;
+    private mainView: HTMLElement;
+    private sideView: HTMLElement;
     private conn: RaptorConnection;
 
     private statusCpu: SystemHeaderStatusIcon;

@@ -6,7 +6,7 @@
     position: absolute;
     top: 56px;
     bottom: 0;
-    left: 0;
+    left: var(--raptor-sidebar-offset-width);
     right: 0;
 }
 

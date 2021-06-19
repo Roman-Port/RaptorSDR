@@ -1,0 +1,27 @@
+.rsys_sidebar {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    bottom: -1px;
+    width: var(--raptor-sidebar-width);
+    background: #23272a;
+    z-index: 9999;
+    border: 1px solid #5a5c5d;
+    border-top-right-radius: 10px;
+}
+
+.rsys_sidebar_header {
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height: 56px;
+}
+
+.rsys_sidebar_content {
+    position: absolute;
+    top:56px;
+    bottom:0;
+    left:0;
+    right:0;
+}

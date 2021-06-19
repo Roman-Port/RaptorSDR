@@ -1,5 +1,8 @@
 import RaptorConnection from "./framework/RaptorConnection";
 import RaptorSystemHeader from "./framework/ui/core/header/RaptorSystemHeader";
+import RaptorSettingsStore from "./framework/ui/core/setting/RaptorSettingsStore";
+import RaptorSystemSettings from "./framework/ui/core/setting/RaptorSystemSettings";
+import RaptorSidebarSystem from "./framework/ui/core/sidebar/system/RaptorSidebarSystem";
 import RaptorMenuWindowStore from "./framework/ui/core/xwindow/RaptorMenuWindowStore";
 import RaptorRootWindowManager from "./framework/ui/core/xwindow/RaptorRootWindowManager";
 import RaptorLoginPage from "./framework/ui/login/RaptorLoginPage";
@@ -12,31 +15,60 @@ require("./main.css");
 export default class RaptorApp {
 
     constructor() {
-        //Create store
-        this.windowStore = new RaptorMenuWindowStore(this);
-
-        //Create connection
         this.conn = new RaptorConnection(this, window.location.host);
     }
 
     conn: RaptorConnection;
     mount: HTMLElement;
+    uiSidebar: RaptorSidebarSystem;
     uiHeader: RaptorSystemHeader;
     menuMount: RaptorMenuMount;
     menuManager: RaptorRootWindowManager;
 
     windowStore: RaptorMenuWindowStore;
+    settingStore: RaptorSettingsStore;
 
     async Init() {
+        //Create stores
+        this.windowStore = new RaptorMenuWindowStore(this);
+        this.settingStore = new RaptorSettingsStore();
+
         //Create basic views
         this.mount = RaptorUiUtil.CreateDom("div", "raptor", document.body);
-        this.uiHeader = new RaptorSystemHeader(this.mount, this.conn);
+        this.uiSidebar = new RaptorSidebarSystem(this, this.mount);
+        this.uiHeader = new RaptorSystemHeader(this.mount, this.uiSidebar.header, this.conn);
         this.menuMount = new RaptorMenuMount(this.mount);
         this.menuManager = new RaptorRootWindowManager(this);
 
+        //Load
+        await this.Preload();
+
+        //Register default settings
+        RaptorSystemSettings.CreateSystemSettings(this);
+
+        //Update complex UIs
+        this.uiHeader.Populate();
+        this.menuManager.Initialize();
+        this.uiSidebar.RefreshAll();
+    }
+
+    private async Preload() {
         //Create preloader view
         var preloader = new RaptorLoginPage(this.mount, this.conn);
 
+        //Authenticate
+        var token = await this.Authenticate(preloader);
+
+        //Connect
+        preloader.SetLoading(true);
+        await this.conn.Init(token);
+        preloader.SetLoading(false);
+
+        //Reveal
+        preloader.Remove();
+    }
+
+    private async Authenticate(preloader: RaptorLoginPage): Promise<string> {
         //Use the refresh token to attempt to login
         preloader.SetLoading(true);
         var refreshResponse = await this.conn.GetHttpRequest("/accounts/login", "POST")
@@ -48,24 +80,11 @@ export default class RaptorApp {
         preloader.SetLoading(false);
 
         //Login if needed, otherwise use the refresh token
-        var token;
         if (refreshResponse["ok"]) {
-            token = refreshResponse["session_token"];
+            return refreshResponse["session_token"];
         } else {
-            token = await preloader.PromptLogin();
+            return await preloader.PromptLogin();
         }
-
-        //Connect
-        preloader.SetLoading(true);
-        await this.conn.Init(token);
-        preloader.SetLoading(false);
-
-        //Populate complex UIs
-        this.uiHeader.Populate();
-        this.menuManager.Initialize();
-
-        //Reveal
-        preloader.Remove();
     }
 
 }

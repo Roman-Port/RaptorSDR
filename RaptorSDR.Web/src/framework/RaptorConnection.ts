@@ -32,6 +32,7 @@ import { RaptorLogLevel } from "../../sdk/RaptorLogLevel";
 import IRaptorDataProvider from "../../sdk/web/IRaptorDataProvider";
 import RaptorDialogUtil from "./RaptorDialogUtil";
 import RaptorMenuWindowStore from "./ui/core/xwindow/RaptorMenuWindowStore";
+import RaptorEventDispaptcher from "../../sdk/RaptorEventDispatcher";
 
 export default class RaptorConnection implements IRaptorConnection {
 
@@ -70,9 +71,10 @@ export default class RaptorConnection implements IRaptorConnection {
     private rpcPing: IRaptorEndpoint;
     private rpc: RaptorDispatcherOpcode;
 
+    private volume: number = 1;
+
     token: string;
     sessionId: string;
-    volume: number = 1;
     Radio: IRaptorRadio;
     VFO: IRaptorVFO;
     dialog: RaptorDialogUtil = new RaptorDialogUtil(this);
@@ -85,6 +87,9 @@ export default class RaptorConnection implements IRaptorConnection {
     componentsAudio: IRaptorPluginAudio[] = [];
 
     currentAudio: IRaptorPluginAudio;
+
+    OnAudioDeviceChanged: RaptorEventDispaptcher<IRaptorPluginAudio> = new RaptorEventDispaptcher<IRaptorPluginAudio>();
+    OnAudioVolumeChanged: RaptorEventDispaptcher<number> = new RaptorEventDispaptcher<number>();
 
     GetUrl(protocol: string, path: string) {
         return protocol + "://" + this.rootUrl + path;
@@ -221,6 +226,10 @@ export default class RaptorConnection implements IRaptorConnection {
         });
     }
 
+    CreateFileOpenDialog(title: string): Promise<string> {
+        return null;
+    }
+
     Log(level: RaptorLogLevel, topic: string, message: string): void {
         console.log("[" + level.toString().padStart(5, " ") + "] [" + topic + "] " + message);
     }
@@ -246,6 +255,9 @@ export default class RaptorConnection implements IRaptorConnection {
 
         //Set default volume
         this.currentAudio.SetVolume(this.volume);
+
+        //Send event
+        this.OnAudioDeviceChanged.Fire(this.currentAudio);
     }
 
     async DisableAudio(): Promise<void> {
@@ -258,6 +270,24 @@ export default class RaptorConnection implements IRaptorConnection {
         //Stop
         await this.currentAudio.Stop();
         this.currentAudio = null;
+
+        //Send event
+        this.OnAudioDeviceChanged.Fire(null);
+    }
+
+    GetAudioVolume(): number {
+        return this.volume;
+    }
+
+    SetAudioVolume(volume: number) {
+        this.volume = volume;
+        if (this.currentAudio != null)
+            this.currentAudio.SetVolume(this.volume);
+        this.OnAudioVolumeChanged.Fire(this.volume);
+    }
+
+    GetAudioDevice(): IRaptorPluginAudio {
+        return this.currentAudio;
     }
 
     async PingServer(): Promise<number> {

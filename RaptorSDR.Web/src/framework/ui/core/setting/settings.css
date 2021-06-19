@@ -1,0 +1,16 @@
+.rsys_settings_regiontitle {
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 10px 0;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.rsys_settings_regiontitle_line {
+    height: 1px;
+    width: auto;
+    flex-grow: 1;
+    background: #8a8a8a;
+    margin-left: 10px;
+}

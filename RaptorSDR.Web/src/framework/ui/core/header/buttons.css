@@ -18,13 +18,8 @@
     background-image: url(icons/mute_white.svg);
 }
 
-/* Logout */
+/* Settings */
 
-.rsys_header_btn_logout .rsys_header_button_clicker {
-    background-image: url(icons/logout_white.svg);
-}
-
-.rsys_header_btn_logout:hover .rsys_header_button_clicker {
-    background-color: #f94747;
-    border-color: #f94747;
+.rsys_header_btn_settings .rsys_header_button_clicker {
+    background-image: url(icons/settings_white.svg);
 }

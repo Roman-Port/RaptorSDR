@@ -1,0 +1,60 @@
+.rsys_settings_goption_setting {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.rsys_settings_goption_title {
+    width: 100px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    font-size: 15px;
+    color: #c5c5c5;
+}
+
+.rsys_settings_goption_base {
+    min-width: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    background: #444446;
+    border: 1px solid #5a5c5d;
+    color: white;
+    border-radius: 2px;
+    height: 28px;
+    overflow: hidden;
+}
+
+.rsys_settings_goption_input {
+    padding: 0 5px;
+    outline: none;
+}
+
+select.rsys_settings_goption_input {
+    height:30px;
+}
+
+.rsys_settings_goption_boolean {
+    display: flex;
+    flex-direction: row;
+}
+
+.rsys_settings_goption_boolean * {
+    flex-grow: 1;
+    text-align: center;
+    padding: 5px 0;
+    cursor: pointer;
+    width: 50%;
+    text-transform: uppercase;
+}
+
+.rsys_settings_goption_boolean_checked {
+    background: #3882dc;
+    font-weight: 600;
+}
+
+.rsys_settings_goption_file {
+    text-align: center;
+    line-height: 28px;
+    cursor: pointer;
+}

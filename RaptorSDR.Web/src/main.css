@@ -6,6 +6,11 @@ body, html {
     overflow: hidden;
 }
 
+body {
+    --raptor-sidebar-width: 260px;
+    --raptor-sidebar-offset-width: calc(var(--raptor-sidebar-width) + 1px);
+}
+
 .raptor {
     position: fixed;
     top: 0;
