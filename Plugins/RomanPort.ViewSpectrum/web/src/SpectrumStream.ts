@@ -1,10 +1,10 @@
 import IRaptorConnection from "../sdk/IRaptorConnection";
 import RaptorEventDispaptcher from "../sdk/RaptorEventDispatcher";
-import SpectrumInfo from "./SpectrumInfo";
+import ISpectrumInfo from "./SpectrumInfo";
 
 export default class SpectrumStream {
 
-    constructor(conn: IRaptorConnection, info: SpectrumInfo, hd: boolean) {
+    constructor(conn: IRaptorConnection, info: ISpectrumInfo, hd: boolean) {
         //Configure
         this.hd = hd;
         this.SampleRateChanged = new RaptorEventDispaptcher();

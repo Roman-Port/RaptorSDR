@@ -1,4 +1,5 @@
 import BaseSpectrumPart from "../BaseSpectrumPart";
+import SpectrumWindow from "../SpectrumWindow";
 
 export default class WaterfallPart extends BaseSpectrumPart {
 
@@ -29,6 +30,55 @@ export default class WaterfallPart extends BaseSpectrumPart {
     ];
 
     private precomputedColors: number[][];
+
+    SettingsChanged(freq: number, sampleRate: number, offsetDb: number, rangeDb: number): void {
+        
+    }
+
+    Update(width: number, height: number, offset: number, range: number): void {
+        //Check if a resize is possible
+        if (width == 0 || height == 0 || this.mainCanvas.width == 0 || this.mainCanvas.height == 0) {
+            //Apply normally
+            super.Update(width, height, offset, range);
+        } else {
+            //Save current pixel data
+            var oldData = this.mainCanvasContext.getImageData(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+            var oldWidth = this.mainCanvas.width;
+            var oldHeight = this.mainCanvas.height;
+
+            //Resize
+            super.Update(width, height, offset, range);
+
+            //Now, create new image data and scale from the old data
+            var newHeight = Math.min(height, oldHeight);
+            var newWidth = width - SpectrumWindow.PADDING_WIDTH;
+            var scale = oldWidth / newWidth;
+
+            //Check if we can do a quick resize
+            if (scale == 1) {
+                //Simply copy
+                this.mainCanvasContext.putImageData(oldData, 0, 0);
+            } else {
+                //Slow resize
+                var newData = this.mainCanvasContext.createImageData(newWidth, newHeight);
+
+                //Scale
+                for (var i = 0; i < newHeight; i++) {
+                    for (var x = 0; x < newWidth; x++) {
+                        var src = ((i * oldWidth) + Math.floor(x * scale)) * 4;
+                        var dst = ((i * newWidth) + x) * 4;
+                        newData.data[dst + 0] = oldData.data[src + 0];
+                        newData.data[dst + 1] = oldData.data[src + 1];
+                        newData.data[dst + 2] = oldData.data[src + 2];
+                        newData.data[dst + 3] = oldData.data[src + 3];
+                    }
+                }
+
+                //Apply back
+                this.mainCanvasContext.putImageData(newData, 0, 0);
+            }
+        }
+    }
 
     protected DrawFrame(frame: Float32Array): void {
         //Move entire spectrum down one pixel

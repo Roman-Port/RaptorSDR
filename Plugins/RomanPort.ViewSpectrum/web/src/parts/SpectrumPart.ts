@@ -1,10 +1,16 @@
 import BaseSpectrumPart from "../BaseSpectrumPart";
+import { SpectrumFreqDisplayMode } from "../config/SpectrumFreqDisplayMode";
+import ISpectrumInfo from "../SpectrumInfo";
 import SpectrumScaleBuilder from "../Util/SpectrumScaleBuilder";
 
 export default class SpectrumPart extends BaseSpectrumPart {
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, info: ISpectrumInfo) {
         super(container);
+        this.info = info;
+
+        //Fix
+        this.mainCanvas.style.top = SpectrumPart.PADDING_TOP + "px";
 
         //Make scale canvas
         this.scaleCanvas = document.createElement("canvas");
@@ -15,27 +21,43 @@ export default class SpectrumPart extends BaseSpectrumPart {
         this.scaleCanvas.style.pointerEvents = "none";
     }
 
+    private info: ISpectrumInfo;
+
     private scaleCanvas: HTMLCanvasElement;
 
     private backgroundGradient: CanvasGradient;
     private foregroundGradient: CanvasGradient;
 
-    Resize(width: number, height: number) {
-        super.Resize(width, height);
+    private height: number = 0;
+    private width: number = 0;
+
+    static readonly PADDING_TOP: number = 5;
+    static readonly PADDING_BOTTOM: number = 25;
+    static readonly PADDING_HEIGHT: number = SpectrumPart.PADDING_TOP + SpectrumPart.PADDING_BOTTOM;
+
+    Update(width: number, height: number, offset: number, range: number) {
+        super.Update(width, height - SpectrumPart.PADDING_HEIGHT, offset, range);
+
+        //Save
+        this.height = height;
+        this.width = width;
 
         //Make gradients
-        this.foregroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height);
+        this.foregroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height - SpectrumPart.PADDING_HEIGHT);
         this.foregroundGradient.addColorStop(0, "#70b4ff");
         this.foregroundGradient.addColorStop(1, "#000050");
-        this.backgroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height);
+        this.backgroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height - SpectrumPart.PADDING_HEIGHT);
         this.backgroundGradient.addColorStop(0, "#345375");
         this.backgroundGradient.addColorStop(1, "#000014");
+    }
 
+    SettingsChanged(freq: number, sampleRate: number, offsetDb: number, rangeDb: number): void {
         //Redraw the scale
-        if (width > 0 && height > 0 && this.enabled) {
-            new SpectrumScaleBuilder(this.scaleCanvas, width, height)
-                .DrawYAxis(0, 80, 5)
-                .Apply();
+        if (freq != null && sampleRate != null && offsetDb != null && rangeDb != null &&
+            this.width > 0 && this.height > 0 && this.enabled && sampleRate != 0 && rangeDb != 0) {
+            new SpectrumScaleBuilder(this.scaleCanvas, this.width, this.height)
+                .DrawYAxis(offsetDb, rangeDb)
+                .DrawXAxis(sampleRate, freq, this.info.useCenterFreq, this.info.fixedIncrement);
         }
     }
 

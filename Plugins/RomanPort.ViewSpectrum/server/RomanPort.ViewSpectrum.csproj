@@ -9,6 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RomanPort.ViewSpectrum.API\RomanPort.ViewSpectrum.API.csproj" />
     <ProjectReference Include="C:\Users\Roman\source\repos\RaptorSDR\\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj" />
     <ProjectReference Include="C:\Users\Roman\source\repos\RaptorSDR\\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj" />
   </ItemGroup>

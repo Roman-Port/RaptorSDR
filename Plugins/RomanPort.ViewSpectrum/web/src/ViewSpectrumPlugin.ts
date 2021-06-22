@@ -1,8 +1,10 @@
 import IRaptorPlugin from "RaptorSdk/plugin/IRaptorPlugin";
 import IRaptorPluginContext from "RaptorSdk/plugin/IRaptorPluginContext";
+import IRaptorWindowContext from "../sdk/ui/core/IRaptorWindowContext";
 import { RaptorWindowMounting } from "../sdk/ui/core/RaptorWindowMounting";
 import RaptorSize from "../sdk/ui/RaptorSize";
-import SpectrumInfo from "./SpectrumInfo";
+import ISpectrumPersistSettings from "./ISpectrumPersistSettings";
+import ISpectrumInfo from "./SpectrumInfo";
 import SpectrumStream from "./SpectrumStream";
 import SpectrumWindow from "./SpectrumWindow";
 
@@ -16,13 +18,13 @@ export default class ViewSpectrumPlugin implements IRaptorPlugin {
 
     Init() {
         //Fetch list of spectrums
-        var list = this.ctx.conn.GetPrimitiveDataProvider<SpectrumInfo[]>(this.ctx.GetId() + ".Spectrums").GetValue();
+        var list = this.ctx.conn.GetPrimitiveDataProvider<ISpectrumInfo[]>(this.ctx.GetId() + ".Spectrums").GetValue();
 
         //Register windows
         var win = this.ctx.RegisterWindowClass({
             displayName: "Spectrum",
             id: "RomanPort.SpectrumPlugin.Spectrum",
-            createInstance: (info: any) => new SpectrumWindow(this.ctx.conn, info as SpectrumInfo),
+            createInstance: (ctx: IRaptorWindowContext) => new SpectrumWindow(ctx),
             hideHeader: false,
             sizeMin: new RaptorSize(100, 100),
             sizeDefault: new RaptorSize(400, 300),

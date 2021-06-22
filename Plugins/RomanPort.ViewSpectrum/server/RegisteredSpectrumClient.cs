@@ -119,6 +119,7 @@ namespace RomanPort.ViewSpectrum
 
             //Apply smoothening
             FFTUtil.ApplySmoothening(powerBufferPtr, power, size, settingAttack, settingDecay);
+            //Utils.Memcpy(powerBufferPtr, power, size * sizeof(float));
 
             //Resize to output
             FFTUtil.ResizePower(powerBufferPtr, resizedBufferPtr, size, outputSize);
