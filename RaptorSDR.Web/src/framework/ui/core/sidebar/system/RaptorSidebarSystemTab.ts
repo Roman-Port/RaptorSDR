@@ -1,5 +1,5 @@
 import { RaptorSettingsTab } from "../../../../../../sdk/ui/setting/RaptorSettingsTab";
-import RaptorUiUtil from "../../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../../sdk/util/RaptorUiUtil";
 import RaptorSettingsPage from "../../setting/RaptorSettingsPage";
 import RaptorSettingsStore from "../../setting/RaptorSettingsStore";
 

@@ -1,3 +1,4 @@
+import RaptorUiUtil from "../sdk/util/RaptorUiUtil";
 import RaptorConnection from "./framework/RaptorConnection";
 import RaptorSystemHeader from "./framework/ui/core/header/RaptorSystemHeader";
 import RaptorSettingsStore from "./framework/ui/core/setting/RaptorSettingsStore";
@@ -7,7 +8,6 @@ import RaptorMenuWindowStore from "./framework/ui/core/xwindow/RaptorMenuWindowS
 import RaptorRootWindowManager from "./framework/ui/core/xwindow/RaptorRootWindowManager";
 import RaptorLoginPage from "./framework/ui/login/RaptorLoginPage";
 import RaptorMenuMount from "./framework/ui/menu/RaptorMenuMount";
-import RaptorUiUtil from "./framework/ui/RaptorUiUtil";
 
 require("./colors.css");
 require("./main.css");

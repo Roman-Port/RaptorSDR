@@ -2,7 +2,7 @@ import IRaptorWindowClassInfo from "../../../../../sdk/plugin/window/IRaptorWind
 import { RaptorLogLevel } from "../../../../../sdk/RaptorLogLevel";
 import IRaptorWindow from "../../../../../sdk/ui/core/IRaptorWindow";
 import RaptorSize from "../../../../../sdk/ui/RaptorSize";
-import RaptorUiUtil from "../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 import IWindowDropZoneElement from "./misc/IWindowDropZoneElement";
 import RaptorWindowContext from "./misc/RaptorWindowContext";
 import BaseStripeWindowMount from "./mounts/BaseStripeWindowMount";

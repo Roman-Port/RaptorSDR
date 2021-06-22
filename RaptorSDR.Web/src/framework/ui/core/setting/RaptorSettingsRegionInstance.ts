@@ -1,5 +1,5 @@
 import IRaptorSettingsRegion from "../../../../../sdk/ui/setting/IRaptorSettingsRegion";
-import RaptorUiUtil from "../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 
 export default class RaptorSettingsRegionInstance {
 

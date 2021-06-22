@@ -1,6 +1,6 @@
 import IRaptorSettingsComponent from "../../../../../sdk/ui/setting/IRaptorSettingsComponent";
 import IRaptorSettingsRegion from "../../../../../sdk/ui/setting/IRaptorSettingsRegion";
-import RaptorUiUtil from "../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 import RaptorSettingsRegionInstance from "./RaptorSettingsRegionInstance";
 
 require("./settings.css");

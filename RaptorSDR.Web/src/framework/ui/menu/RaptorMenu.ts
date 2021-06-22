@@ -1,6 +1,6 @@
 import IRaptorMenu from "../../../../sdk/ui/menu/IRaptorMenu";
 import RaptorMenuBuilder from "../../../../sdk/ui/menu/RaptorMenuBuilder";
-import RaptorUiUtil from "../RaptorUiUtil";
+import RaptorUiUtil from "../../../../sdk/util/RaptorUiUtil";
 import RaptorMenuMount from "./RaptorMenuMount";
 
 export default class RaptorMenu implements IRaptorMenu {

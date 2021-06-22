@@ -1,4 +1,4 @@
-import RaptorUiUtil from "../../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../../sdk/util/RaptorUiUtil";
 
 require("./status.css");
 

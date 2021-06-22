@@ -1,6 +1,6 @@
 import IRaptorConnection from "RaptorSdk/IRaptorConnection";
 import IRaptorPrimitiveDataProvider from "RaptorSdk/web/providers/IRaptorPrimitiveDataProvider";
-import RaptorUiUtil from "../../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../../sdk/util/RaptorUiUtil";
 
 require("./tuner.css");
 

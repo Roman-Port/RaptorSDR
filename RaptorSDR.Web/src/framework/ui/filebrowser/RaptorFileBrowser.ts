@@ -1,13 +1,13 @@
 import IRaptorMenu from "../../../../sdk/ui/menu/IRaptorMenu";
 import RaptorMenuBuilder from "../../../../sdk/ui/menu/RaptorMenuBuilder";
+import RaptorDomBuilder from "../../../../sdk/util/RaptorDomBuilder";
+import RaptorUiUtil from "../../../../sdk/util/RaptorUiUtil";
 import RaptorConnection from "../../RaptorConnection";
 import DirectoryListing from "../../web/entities/file/DirectoryListing";
 import DirectoryListingEntry from "../../web/entities/file/DirectoryListingEntry";
 import { DirectoryListingEntryType } from "../../web/entities/file/DirectoryListingEntryType";
 import { DirectoryListingStatus } from "../../web/entities/file/DirectoryListingStatus";
 import RootListing from "../../web/entities/file/RootListing";
-import RaptorDomBuilder from "../RaptorDomBuilder";
-import RaptorUiUtil from "../RaptorUiUtil";
 
 require("./filebrowser.css");
 

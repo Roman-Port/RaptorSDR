@@ -1,5 +1,5 @@
+import RaptorUiUtil from "../../../../sdk/util/RaptorUiUtil";
 import RaptorConnection from "../../RaptorConnection";
-import RaptorUiUtil from "../RaptorUiUtil";
 
 require("./login.css");
 

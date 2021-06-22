@@ -1,4 +1,4 @@
-import RaptorUiUtil from "../../RaptorUiUtil";
+import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 import IWindowDropZoneElement from "./misc/IWindowDropZoneElement";
 import RaptorWindowWrapper from "./RaptorWindowWrapper";
 import { WindowResizeDirection } from "./WindowResizeDirection";
