@@ -4,7 +4,9 @@ import IRaptorWindow from "../../../../../sdk/ui/core/IRaptorWindow";
 import RaptorSize from "../../../../../sdk/ui/RaptorSize";
 import RaptorUiUtil from "../../RaptorUiUtil";
 import IWindowDropZoneElement from "./misc/IWindowDropZoneElement";
+import RaptorWindowContext from "./misc/RaptorWindowContext";
 import BaseStripeWindowMount from "./mounts/BaseStripeWindowMount";
+import RaptorMenuWindowStore from "./RaptorMenuWindowStore";
 import RaptorRootWindowManager from "./RaptorRootWindowManager";
 import IWindowSavedInfo from "./serialization/IWindowSavedInfo";
 
@@ -171,9 +173,12 @@ export default class RaptorWindowWrapper {
             this.ChangeTitle(instance.info.displayName);
         }
 
+        //Create the window context
+        var windowContext = new RaptorWindowContext(this.root.app.conn, RaptorMenuWindowStore.GetInstanceId(instance), instance.info.info, this.info.userPersist);
+
         //Create the plugin code
         try {
-            this.userWindow = instance.windowClass.info.createInstance(instance.info.info, this.info.userPersist);
+            this.userWindow = instance.windowClass.info.createInstance(windowContext);
         } catch (ex) {
             this.FatalErrorWindow("Failed to create view.");
             this.root.app.conn.Log(RaptorLogLevel.ERROR, "RaptorWindowWrapper", "Plugin error while trying to create window: " + ex);

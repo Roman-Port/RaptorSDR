@@ -5,13 +5,12 @@
     "\\src\\framework",
     "\\src\\framework\\ui",
     "\\src\\framework\\ui\\core",
-    "\\src\\framework\\ui\\core\\header",
-    "\\src\\framework\\ui\\core\\header\\status",
     "\\src\\framework\\ui\\core\\sidebar",
     "\\src\\framework\\ui\\core\\xwindow",
     "\\src\\framework\\ui\\core\\xwindow\\mounts",
+    "\\src\\framework\\ui\\filebrowser",
     "\\src\\framework\\web"
   ],
-  "SelectedNode": "\\src\\framework\\ui\\core\\header\\RaptorSystemHeader.ts",
+  "SelectedNode": "\\src\\framework\\ui\\filebrowser\\RaptorFileBrowser.ts",
   "PreviewInSolutionExplorer": false
 }

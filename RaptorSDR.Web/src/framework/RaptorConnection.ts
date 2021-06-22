@@ -34,6 +34,9 @@ import RaptorDialogUtil from "./RaptorDialogUtil";
 import RaptorMenuWindowStore from "./ui/core/xwindow/RaptorMenuWindowStore";
 import RaptorEventDispaptcher from "../../sdk/RaptorEventDispatcher";
 import RaptorOpenFileBrowser from "./ui/filebrowser/RaptorOpenFileBrowser";
+import IRaptorSettingsRegion from "../../sdk/ui/setting/IRaptorSettingsRegion";
+import RaptorSettingsPage from "./ui/core/setting/RaptorSettingsPage";
+import { RaptorSettingsTab } from "../../sdk/ui/setting/RaptorSettingsTab";
 
 export default class RaptorConnection implements IRaptorConnection {
 
@@ -246,6 +249,10 @@ export default class RaptorConnection implements IRaptorConnection {
 
         //Add
         this.componentsAudio.push(audio);
+    }
+
+    RegisterSettingsRegionSidebar(region: IRaptorSettingsRegion, tab: RaptorSettingsTab) {
+        this.app.settingStore.RegisterSidebarRegion(region, tab);
     }
 
     async EnableAudio(audio: IRaptorPluginAudio): Promise<void> {

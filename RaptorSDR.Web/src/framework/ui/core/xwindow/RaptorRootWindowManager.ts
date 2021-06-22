@@ -39,6 +39,12 @@ export default class RaptorRootWindowManager extends BaseWindowMount {
         window.addEventListener("resize", (evt: UIEvent) => {
             this.stripe.UpdateLayout(this.GetWidth(), this.GetHeight(), 0, 0, 0, 0);
         });
+
+        //Bind to window close so that we can save settings before the window unloads
+        window.addEventListener("beforeunload", () => {
+            this.SaveLayout();
+            return null;
+        });
     }
 
     store: RaptorMenuWindowStore;
