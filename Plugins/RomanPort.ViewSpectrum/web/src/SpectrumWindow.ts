@@ -2,19 +2,26 @@ import IRaptorConnection from "../sdk/IRaptorConnection";
 import IRaptorConfigurable from "../sdk/misc/IRaptorConfigurable";
 import IRaptorWindow from "../sdk/ui/core/IRaptorWindow";
 import IRaptorWindowContext from "../sdk/ui/core/IRaptorWindowContext";
-import RaptorSize from "../sdk/ui/RaptorSize";
 import { RaptorSettingsTab } from "../sdk/ui/setting/RaptorSettingsTab";
 import IRaptorPrimitiveDataProvider from "../sdk/web/providers/IRaptorPrimitiveDataProvider";
-import BaseSpectrumPart from "./BaseSpectrumPart";
-import ISpectrumPersistSettings from "./ISpectrumPersistSettings";
+import BasePart from "./parts/BasePart";
+import ISpectrumPersistSettings from "./misc/ISpectrumPersistSettings";
 import SpectrumPart from "./parts/SpectrumPart";
 import WaterfallPart from "./parts/WaterfallPart";
-import { SpectrumDisplayMode } from "./SpectrumDisplayMode";
-import ISpectrumInfo from "./SpectrumInfo";
-import SpectrumStream from "./SpectrumStream";
-import ConfigOptionWrapper from "./Util/ConfigOptionWrapper";
+import ISpectrumInfo from "./config/SpectrumInfo";
+import SpectrumStream from "./web/SpectrumStream";
+import ISpectrumFrame from "./web/ISpectrumFrame";
+import { SpectrumOpcode } from "./web/SpectrumOpcode";
+import SpectrumZoomPreview from "./misc/SpectrumZoomPreview";
+import SpectrumDataProvider from "./misc/SpectrumDataProvider";
+import ISpectrumDataProviderHost from "./misc/ISpectrumDataProviderHost";
+import SpectrumDataProviderScaler from "./misc/SpectrumDataProviderScaler";
+import RaptorEventDispaptcher from "../sdk/RaptorEventDispatcher";
+import RaptorUiUtil from "../sdk/util/RaptorUiUtil";
 
-export default class SpectrumWindow implements IRaptorWindow {
+require("./style.css");
+
+export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProviderHost {
 
     constructor(ctx: IRaptorWindowContext) {
         this.ctx = ctx;
@@ -22,18 +29,46 @@ export default class SpectrumWindow implements IRaptorWindow {
         this.info = ctx.info as ISpectrumInfo;
         this.persist = ctx.persist as ISpectrumPersistSettings;
 
-        //Make sure that persistent values have their default values set
-        this.PersistSetDefault("offset", this.info.defaultOffset);
-        this.PersistSetDefault("range", this.info.defaultRange);
-        this.PersistSetDefault("attack", this.info.defaultAttack);
-        this.PersistSetDefault("decay", this.info.defaultDecay);
+        //Create stream
+        this.sock = new SpectrumStream(this.conn, this.info, true);
+
+        //Create data providers
+        this.SettingOffset = new SpectrumDataProvider(this, "offset", "offset", this.info.defaultOffset);
+        this.SettingRange = new SpectrumDataProvider(this, "range", "range", this.info.defaultRange);
+        this.SettingAttack = new SpectrumDataProvider(this, "attack", "attack", this.info.defaultAttack);
+        this.SettingDecay = new SpectrumDataProvider(this, "decay", "decay", this.info.defaultDecay);
+        this.SettingZoom = new SpectrumDataProvider(this, "zoom", "zoom", 0.5);
+        this.SettingCenter = new SpectrumDataProvider(this, "center", "center", 0.5);
+
+        //Create "fake" data providers for the sample rate
+        this.SampleRate = {
+            GetValue: () => {
+                return this.sampleRate;
+            },
+            SetValue: () => {
+                throw new Error("Cannot set sample rate.");
+            },
+            OnChanged: new RaptorEventDispaptcher<number>()
+        }
+        this.SampleRateZoomed = {
+            GetValue: () => {
+                return this.sampleRate * this.SettingZoom.GetValue();
+            },
+            SetValue: () => {
+                throw new Error("Cannot set sample rate.");
+            },
+            OnChanged: new RaptorEventDispaptcher<number>()
+        }
+
+        //Create zoom preview
+        this.preview = new SpectrumZoomPreview(this.SettingZoom, this.SettingCenter);
 
         //Create settings panel
         var settings = ctx.CreateSettingsRegion(this.info.name + " Settings", "settings")
-            .AddOptionRange("Offset", new ConfigOptionWrapper(this, "offset", (value: number) => this.sock.SetOffset(value)), 0, 200)
-            .AddOptionRange("Range", new ConfigOptionWrapper(this, "range", (value: number) => this.sock.SetRange(value)), 1, 200)
-            .AddOptionRange("Attack", new ConfigOptionWrapper(this, "attack", (value: number) => this.sock.SetAttack(value), 100), 0, 100)
-            .AddOptionRange("Decay", new ConfigOptionWrapper(this, "decay", (value: number) => this.sock.SetDecay(value), 100), 0, 100)
+            .AddOptionRange("Offset", this.SettingOffset, 0, 200)
+            .AddOptionRange("Range", this.SettingRange, 1, 200)
+            .AddOptionRange("Attack", new SpectrumDataProviderScaler(this.SettingAttack, 100), 0, 100)
+            .AddOptionRange("Decay", new SpectrumDataProviderScaler(this.SettingDecay, 100), 0, 100)
             .Build();
         ctx.RegisterSettingsRegionSidebar(settings, RaptorSettingsTab.GENRAL);
     }
@@ -44,13 +79,24 @@ export default class SpectrumWindow implements IRaptorWindow {
     persist: ISpectrumPersistSettings;
     sock: SpectrumStream;
 
-    private parts: BaseSpectrumPart[] = [];
+    SettingOffset: IRaptorConfigurable<number>;
+    SettingRange: IRaptorConfigurable<number>;
+    SettingAttack: IRaptorConfigurable<number>;
+    SettingDecay: IRaptorConfigurable<number>;
+    SettingZoom: IRaptorConfigurable<number>;
+    SettingCenter: IRaptorConfigurable<number>;
+    SampleRate: IRaptorConfigurable<number>;
+    SampleRateZoomed: IRaptorConfigurable<number>;
+
+    private parts: BasePart[] = [];
     private spectrumHeight: number; //only applies to hybrid mode
     private window: HTMLElement;
     private slider: HTMLElement;
     private sliderDragging: boolean;
     private persistentSpectrumHeightUpdated: boolean = false;
     private freqDataProvider: IRaptorPrimitiveDataProvider<number>;
+    private sampleRate: number = 1;
+    private preview: SpectrumZoomPreview;
 
     static readonly PADDING_LEFT: number = 25;
     static readonly PADDING_RIGHT: number = 15;
@@ -63,6 +109,7 @@ export default class SpectrumWindow implements IRaptorWindow {
     CreateWindow(win: HTMLElement): void {
         //Configure
         this.window = win;
+        this.window.classList.add("rplug_spectrum");
 
         //Get the data provider for the frequency (if any)
         if (this.info.freqDataProvider != null) {
@@ -72,41 +119,51 @@ export default class SpectrumWindow implements IRaptorWindow {
             });
         }
 
-        //Create stream
-        this.sock = new SpectrumStream(this.conn, this.info, true);
-        this.sock.SampleRateChanged.Bind(() => { this.SettingsChanged(); });
-        this.sock.SetOffset(this.persist.offset);
-        this.sock.SetRange(this.persist.range);
-        this.sock.SetAttack(this.persist.attack);
-        this.sock.SetDecay(this.persist.decay);
-
         //Create parts
         this.parts = [
-            new SpectrumPart(this.CreateContainer(win), this.info),
+            new SpectrumPart(this.CreateContainer(win), this.info, this.SampleRateZoomed),
             new WaterfallPart(this.CreateContainer(win))
         ];
 
         //Bind draw
-        this.sock.FrameReceived.Bind((frame: Float32Array) => {
-            for (var i = 0; i < this.parts.length; i++) {
-                this.parts[i].ProcessFrame(frame);
+        this.sock.FrameReceived.Bind((frame: ISpectrumFrame) => {
+            //Check if the sample rate was updated
+            if (this.sampleRate != frame.sampleRate) {
+                this.sampleRate = frame.sampleRate;
+                this.SampleRate.OnChanged.Fire(this.SampleRate.GetValue());
+                this.SampleRateZoomed.OnChanged.Fire(this.SampleRateZoomed.GetValue());
+                this.SettingsChanged();
+            }
+
+            //Send from opcode
+            if (frame.opcode == SpectrumOpcode.OP_FRAME_ZOOM && this.sock.IsTokenCurrent(frame.token)) {
+                for (var i = 0; i < this.parts.length; i++) {
+                    this.parts[i].ProcessFrame(frame.frame);
+                }
+            }
+            if (frame.opcode == SpectrumOpcode.OP_FRAME_FULL && this.sock.IsTokenCurrent(frame.token)) {
+                this.preview.AddFrame(frame.frame);
             }
         });
 
+        //Mount zoom preview
+        this.preview.MountTo(win);
+
+        //Bind zoom event
+        win.addEventListener("wheel", (evt: WheelEvent) => {
+            var value = this.SettingZoom.GetValue() + (0.03 * Math.max(-1, Math.min(1, evt.deltaY)));
+            this.SettingZoom.SetValue(Math.max(0, Math.min(1, value)));
+            var halfZoom = this.SettingZoom.GetValue() / 2;
+            this.SettingCenter.SetValue(Math.max(halfZoom, Math.min(1 - halfZoom, this.SettingCenter.GetValue())));
+            evt.preventDefault();
+            evt.stopPropagation();
+        });
+
         //Create the slider
-        this.slider = this.CreateContainer(win);
-        this.slider.style.width = "15px";
-        this.slider.style.height = "32px";
-        this.slider.style.right = "0";
-        this.slider.style.zIndex = "99";
-        this.slider.style.borderRadius = "3px";
-        this.slider.style.cursor = "pointer";
-        this.slider.style.backgroundColor = "#2C2F33";
-        this.slider.style.display = "flex";
-        this.slider.style.flexDirection = "column";
+        this.slider = RaptorUiUtil.CreateDom("div", "rplug_spectrum_handle", win);
+        RaptorUiUtil.CreateDom("div", null, this.slider);
+        RaptorUiUtil.CreateDom("div", null, this.slider);
         this.slider.addEventListener("mousedown", () => this.sliderDragging = true);
-        this.CreateSliderIcon(this.slider, false);
-        this.CreateSliderIcon(this.slider, true);
         window.addEventListener("mouseup", () => this.sliderDragging = false);
         window.addEventListener("mousemove", (evt: MouseEvent) => {
             if (this.sliderDragging) {
@@ -140,13 +197,28 @@ export default class SpectrumWindow implements IRaptorWindow {
     }
 
     SettingsChanged() {
+        //Get the frequency from the data provider
+        var freq = this.freqDataProvider == null ? 0 : this.freqDataProvider.GetValue();
+
+        //Offset it by the zoom
+        freq += (this.SettingCenter.GetValue() - 0.5) * (this.sampleRate * 1);
+
+        //If this is a real spectrum, fix the scaling so that the center is actually sampleRate/2
+        if (!this.info.useCenterFreq)
+            freq += this.sampleRate / 2;
+
+        //Dispatch to parts
         for (var i = 0; i < this.parts.length; i++)
             this.parts[i].SettingsChanged(
-                this.freqDataProvider == null ? 0 : this.freqDataProvider.GetValue(),
-                this.sock.GetSampleRate(),
+                freq,
+                this.sampleRate,
                 this.persist.offset,
                 this.persist.range
             );
+
+        //Update preview
+        if (this.preview != null)
+            this.preview.UpdateRegion();
     }
 
     private ConfigureLayout() {
@@ -221,12 +293,6 @@ export default class SpectrumWindow implements IRaptorWindow {
         if (flipped)
             e.style.transform = "scaleY(-1)";
         container.appendChild(e);
-    }
-
-    private PersistSetDefault<T>(persistKey: string, defaultValue: T) {
-        var persist = this.persist as any;
-        if (persist[persistKey] == null)
-            persist[persistKey] = defaultValue;
     }
 
 }

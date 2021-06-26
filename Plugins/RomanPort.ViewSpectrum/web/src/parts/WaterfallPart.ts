@@ -1,7 +1,7 @@
-import BaseSpectrumPart from "../BaseSpectrumPart";
+import BasePart from "./BasePart";
 import SpectrumWindow from "../SpectrumWindow";
 
-export default class WaterfallPart extends BaseSpectrumPart {
+export default class WaterfallPart extends BasePart {
 
     constructor(container: HTMLElement) {
         super(container);

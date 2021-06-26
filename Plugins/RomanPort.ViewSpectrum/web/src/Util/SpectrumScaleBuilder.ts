@@ -57,19 +57,10 @@ export default class SpectrumScaleBuilder {
         return this;
     }
 
-    DrawXAxis(sampleRate: number, freq: number, useCenterFreq: boolean, fixedIncrement?: number): SpectrumScaleBuilder {
-        //Determine start and ending frequencies to request based on the mode
-        var startFreq: number;
-        var endFreq: number;
-        if (useCenterFreq) {
-            //The specified freq is the center, expand outward
-            startFreq = freq - (sampleRate / 2);
-            endFreq = freq + (sampleRate / 2);
-        } else {
-            //The specified freq (probably 0) is the left, expand to the right
-            startFreq = freq;
-            endFreq = freq + sampleRate;
-        }
+    DrawXAxis(sampleRate: number, centerFreq: number, fixedIncrement?: number): SpectrumScaleBuilder {
+        //Determine start and ending frequencies, assuming center freq
+        var startFreq = centerFreq - (sampleRate / 2);
+        var endFreq = centerFreq + (sampleRate / 2);
 
         //Calculate the number of points we can nicely display on screen
         var maxPoints = (this.width - SpectrumWindow.PADDING_WIDTH) / 50;
@@ -124,7 +115,7 @@ export default class SpectrumScaleBuilder {
 
         //Find the smallest value to represent it with
         var label = 0;
-        while (freq >= 1000) {
+        while (Math.abs(freq) >= 1000) {
             freq /= 1000;
             label++;
         }

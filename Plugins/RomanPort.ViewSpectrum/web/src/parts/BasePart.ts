@@ -1,6 +1,6 @@
-import SpectrumWindow from "./SpectrumWindow";
+import SpectrumWindow from "../SpectrumWindow";
 
-export default abstract class BaseSpectrumPart {
+export default abstract class BasePart {
 
     constructor(container: HTMLElement) {
         //Configure

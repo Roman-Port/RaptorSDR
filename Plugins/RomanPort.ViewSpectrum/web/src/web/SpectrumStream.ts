@@ -1,13 +1,13 @@
-import IRaptorConnection from "../sdk/IRaptorConnection";
-import RaptorEventDispaptcher from "../sdk/RaptorEventDispatcher";
-import ISpectrumInfo from "./SpectrumInfo";
+import IRaptorConnection from "../../sdk/IRaptorConnection";
+import RaptorEventDispaptcher from "../../sdk/RaptorEventDispatcher";
+import ISpectrumInfo from "../config/SpectrumInfo";
+import ISpectrumFrame from "./ISpectrumFrame";
 
 export default class SpectrumStream {
 
     constructor(conn: IRaptorConnection, info: ISpectrumInfo, hd: boolean) {
         //Configure
         this.hd = hd;
-        this.SampleRateChanged = new RaptorEventDispaptcher();
         this.FrameReceived = new RaptorEventDispaptcher();
 
         //Open stream
@@ -31,9 +31,11 @@ export default class SpectrumStream {
     private hd: boolean;
     private sampleRate: number;
     private connect: Promise<void>;
+    private currentToken: number = 0;
 
-    SampleRateChanged: RaptorEventDispaptcher<number>;
-    FrameReceived: RaptorEventDispaptcher<Float32Array>;
+    private static readonly HEADER_SIZE: number = 8;
+
+    FrameReceived: RaptorEventDispaptcher<ISpectrumFrame>;
 
     SetSize(size: number) {
         this.UpdateWebValue("size", size);
@@ -55,17 +57,28 @@ export default class SpectrumStream {
         this.UpdateWebValue("range", range);
     }
 
-    GetSampleRate(): number {
-        return this.sampleRate;
+    SetZoom(zoom: number) {
+        this.UpdateWebValue("zoom", zoom);
     }
 
     WaitConnect(): Promise<void> {
         return this.connect;
     }
 
-    private UpdateWebValue(key: string, value: any) {
+    IsTokenCurrent(challenge: number): boolean {
+        return challenge == this.currentToken;
+    }
+
+    UpdateWebValue(key: string, value: any) {
+        //Create payload
         var e = {} as any;
         e[key] = value;
+
+        //Set token
+        this.currentToken = (this.currentToken + 1) % 65535;
+        e["token"] = this.currentToken;
+
+        //Wait for connection and send
         this.WaitConnect().then(() => {
             this.sock.send(JSON.stringify(e));
         });
@@ -75,28 +88,27 @@ export default class SpectrumStream {
         //Open DataView
         var view = new DataView(payload);
 
-        //Check if sample rate has changed
-        if (this.sampleRate != view.getUint32(0, true)) {
-            this.sampleRate = view.getUint32(0, true);
-            this.SampleRateChanged.Fire(this.sampleRate);
-        }
-
-        //Get number of pixels
-        var size = (payload.byteLength - 4) / (this.hd ? 2 : 1);
+        //Read header
+        var frame: ISpectrumFrame = {
+            protocolVersion: view.getInt8(0),
+            opcode: view.getInt8(1),
+            token: view.getUint16(2, true),
+            sampleRate: view.getUint32(4, true),
+            frame: new Float32Array((payload.byteLength - SpectrumStream.HEADER_SIZE) / (this.hd ? 2 : 1))
+        };
 
         //Unpack
-        var frame = new Float32Array(size);
-        var offset = 4;
+        var offset = SpectrumStream.HEADER_SIZE;
         if (this.hd) {
             //2 bytes-per-pixel, ushort
-            for (var i = 0; i < size; i++) {
-                frame[i] = view.getUint16(offset, true) / 65535;
+            for (var i = 0; i < frame.frame.length; i++) {
+                frame.frame[i] = view.getUint16(offset, true) / 65535;
                 offset += 2;
             }
         } else {
             //1 byte-per-pixel
-            for (var i = 0; i < size; i++) {
-                frame[i] = view.getUint8(offset++) / 255;
+            for (var i = 0; i < frame.frame.length; i++) {
+                frame.frame[i] = view.getUint8(offset++) / 255;
             }
         }
 

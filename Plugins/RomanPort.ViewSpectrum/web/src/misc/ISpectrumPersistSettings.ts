@@ -5,5 +5,7 @@ export default interface ISpectrumPersistSettings {
     range?: number;
     attack?: number;
     decay?: number;
+    zoom?: number;
+    center?: number;
 
 }

@@ -1,13 +1,16 @@
-import BaseSpectrumPart from "../BaseSpectrumPart";
+import IRaptorConfigurable from "../../sdk/misc/IRaptorConfigurable";
+import BasePart from "./BasePart";
 import { SpectrumFreqDisplayMode } from "../config/SpectrumFreqDisplayMode";
-import ISpectrumInfo from "../SpectrumInfo";
+import ISpectrumInfo from "../config/SpectrumInfo";
+import SpectrumPainter from "../Util/SpectrumPainter";
 import SpectrumScaleBuilder from "../Util/SpectrumScaleBuilder";
 
-export default class SpectrumPart extends BaseSpectrumPart {
+export default class SpectrumPart extends BasePart {
 
-    constructor(container: HTMLElement, info: ISpectrumInfo) {
+    constructor(container: HTMLElement, info: ISpectrumInfo, zoomed: IRaptorConfigurable<number>) {
         super(container);
         this.info = info;
+        this.zoomed = zoomed;
 
         //Fix
         this.mainCanvas.style.top = SpectrumPart.PADDING_TOP + "px";
@@ -22,7 +25,7 @@ export default class SpectrumPart extends BaseSpectrumPart {
     }
 
     private info: ISpectrumInfo;
-
+    private zoomed: IRaptorConfigurable<number>;
     private scaleCanvas: HTMLCanvasElement;
 
     private backgroundGradient: CanvasGradient;
@@ -43,41 +46,25 @@ export default class SpectrumPart extends BaseSpectrumPart {
         this.width = width;
 
         //Make gradients
-        this.foregroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height - SpectrumPart.PADDING_HEIGHT);
-        this.foregroundGradient.addColorStop(0, "#70b4ff");
-        this.foregroundGradient.addColorStop(1, "#000050");
-        this.backgroundGradient = this.mainCanvasContext.createLinearGradient(0, 0, 0, height - SpectrumPart.PADDING_HEIGHT);
-        this.backgroundGradient.addColorStop(0, "#345375");
-        this.backgroundGradient.addColorStop(1, "#000014");
+        this.foregroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, "#70b4ff", "#000050");
+        this.backgroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, "#345375", "#000014");
     }
 
     SettingsChanged(freq: number, sampleRate: number, offsetDb: number, rangeDb: number): void {
+        //Get values
+        sampleRate = this.zoomed.GetValue();
+
         //Redraw the scale
         if (freq != null && sampleRate != null && offsetDb != null && rangeDb != null &&
             this.width > 0 && this.height > 0 && this.enabled && sampleRate != 0 && rangeDb != 0) {
             new SpectrumScaleBuilder(this.scaleCanvas, this.width, this.height)
                 .DrawYAxis(offsetDb, rangeDb)
-                .DrawXAxis(sampleRate, freq, this.info.useCenterFreq, this.info.fixedIncrement);
+                .DrawXAxis(sampleRate, freq, this.info.fixedIncrement);
         }
     }
 
     protected DrawFrame(frame: Float32Array): void {
-        //Clear canvas
-        this.mainCanvasContext.fillStyle = this.foregroundGradient;
-        this.mainCanvasContext.fillRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-
-        //Paint
-        this.mainCanvasContext.beginPath();
-        this.mainCanvasContext.moveTo(0, frame[0] * this.mainCanvas.height);
-        this.mainCanvasContext.strokeStyle = "white";
-        this.mainCanvasContext.fillStyle = this.backgroundGradient;
-        var value: number;
-        for (var i = 1; i < frame.length; i++) {
-            value = Math.floor(frame[i] * this.mainCanvas.height);
-            this.mainCanvasContext.lineTo(i, value);
-            this.mainCanvasContext.fillRect(i, 0, 1, value);
-        }
-        this.mainCanvasContext.stroke();
+        SpectrumPainter.PaintSpectrum(this.mainCanvasContext, this.mainCanvas.width, this.mainCanvas.height, frame, this.foregroundGradient, this.backgroundGradient);
     }
 
 }

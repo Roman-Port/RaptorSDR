@@ -3,9 +3,9 @@ import IRaptorPluginContext from "RaptorSdk/plugin/IRaptorPluginContext";
 import IRaptorWindowContext from "../sdk/ui/core/IRaptorWindowContext";
 import { RaptorWindowMounting } from "../sdk/ui/core/RaptorWindowMounting";
 import RaptorSize from "../sdk/ui/RaptorSize";
-import ISpectrumPersistSettings from "./ISpectrumPersistSettings";
-import ISpectrumInfo from "./SpectrumInfo";
-import SpectrumStream from "./SpectrumStream";
+import ISpectrumPersistSettings from "./misc/ISpectrumPersistSettings";
+import ISpectrumInfo from "./config/SpectrumInfo";
+import SpectrumStream from "./web/SpectrumStream";
 import SpectrumWindow from "./SpectrumWindow";
 
 export default class ViewSpectrumPlugin implements IRaptorPlugin {
