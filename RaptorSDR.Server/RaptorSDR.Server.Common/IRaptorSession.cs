@@ -19,8 +19,8 @@ namespace RaptorSDR.Server.Common
 
         bool CheckSystemScope(RaptorScope scope);
         bool CheckSystemScope(params RaptorScope[] scopes);
-        bool CheckPluginScope(RaptorPlugin plugin, string scope);
-        bool CheckPluginScope(RaptorPlugin plugin, params string[] scopes);
+        bool CheckPluginScope(string scope);
+        bool CheckPluginScope(params string[] scopes);
 
         IRaptorWebFileInfo ResolveWebFile(string webPathname);
     }

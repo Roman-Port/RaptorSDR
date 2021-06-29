@@ -47,16 +47,16 @@ namespace RaptorSDR.Server.Core.Web.Auth
             return ok;
         }
 
-        public bool CheckPluginScope(RaptorPlugin plugin, string scope)
+        public bool CheckPluginScope(string scope)
         {
-            return IsAdmin || info.scope_plugin.Contains(plugin.Id.Then(scope).ToString());
+            return IsAdmin || info.scope_plugin.Contains(scope);
         }
 
-        public bool CheckPluginScope(RaptorPlugin plugin, params string[] scopes)
+        public bool CheckPluginScope(params string[] scopes)
         {
             bool ok = true;
             foreach (var s in scopes)
-                ok = ok && CheckPluginScope(plugin, s);
+                ok = ok && CheckPluginScope(s);
             return ok;
         }
 

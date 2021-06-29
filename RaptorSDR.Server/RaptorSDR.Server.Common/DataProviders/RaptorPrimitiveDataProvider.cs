@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using RaptorSDR.Server.Common.Auth;
 using RaptorSDR.Server.Common.Dispatchers;
 using System;
 using System.Collections.Generic;
@@ -28,8 +29,9 @@ namespace RaptorSDR.Server.Common.DataProviders
         private IRaptorContext context;
         private T value;
         private bool readOnly;
-        private RaptorDataProvider_PermisionCheckFunc permissionCheck;
         private string id;
+        private List<RaptorScope> requiredScopeSystem = new List<RaptorScope>();
+        private List<string> requiredScopePlugin = new List<string>();
 
         public event RaptorDataProvider_OnChangedEventArgs<T> OnChanging;
 
@@ -54,9 +56,15 @@ namespace RaptorSDR.Server.Common.DataProviders
             return this;
         }
 
-        public RaptorPrimitiveDataProvider<T> SetPermissionCheckFunction(RaptorDataProvider_PermisionCheckFunc func)
+        public RaptorPrimitiveDataProvider<T> SetRequiredScope(RaptorScope scope)
         {
-            permissionCheck = func;
+            requiredScopeSystem.Add(scope);
+            return this;
+        }
+
+        public RaptorPrimitiveDataProvider<T> SetRequiredScope(string scope)
+        {
+            requiredScopePlugin.Add(scope);
             return this;
         }
 
@@ -131,7 +139,7 @@ namespace RaptorSDR.Server.Common.DataProviders
 
         private bool CheckIfWritePermitted(IRaptorSession session)
         {
-            return !readOnly && (permissionCheck == null || permissionCheck(session));
+            return !readOnly && session.CheckPluginScope(requiredScopePlugin.ToArray()) && session.CheckSystemScope(requiredScopeSystem.ToArray());
         }
 
         private void WebNotifyUpdated(IRaptorSession sender = null, IRaptorEndpointClient client = null)
@@ -150,8 +158,16 @@ namespace RaptorSDR.Server.Common.DataProviders
 
         public virtual void BuildInfo(JObject info)
         {
+            //Create the numerical representation of the system scopes
+            ulong scope = 0;
+            foreach (var s in requiredScopeSystem)
+                scope |= 1ul << (int)s;
+
+            //Write other info
             info["underlying_type"] = typeof(T).FullName;
             info["read_only"] = readOnly;
+            info["scope_plugin"] = JToken.FromObject(requiredScopePlugin);
+            info["scope_system"] = scope;
         }
 
         protected virtual bool DeserializeIncoming(JToken incoming, out T value)

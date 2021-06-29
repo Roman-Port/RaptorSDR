@@ -36,10 +36,13 @@ namespace RaptorSDR.Server.Core.Radio
             dpRdsDetected = new RaptorPrimitiveDataProvider<bool>(this, "RdsDetected")
                 .SetWebReadOnly(true);
             dpFreqOffset = new RaptorPrimitiveDataProvider<long>(this, "FreqOffset")
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_BASIC)
                 .BindOnChanging((long v, IRaptorSession session) => osc.Frequency = v);
             dpBandwidth = new RaptorPrimitiveDataProvider<float>(this, "Bandwidth")
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_BASIC)
                 .BindOnChanging((float v, IRaptorSession session) => configStale = true);
             dpDemodulator = new RaptorSelectionDataProvider<IPluginDemodulator>(this, "Demodulator", control.PluginDemodulators)
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_BASIC)
                 .BindOnChanging((IPluginDemodulator v, IRaptorSession session) => configStale = true);
 
             //Create RDS

@@ -22,6 +22,7 @@ namespace RaptorSDR.Server.Core.Radio
 
             //Make data providers
             dpEnabled = new RaptorPrimitiveDataProvider<bool>(this, "Power")
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_POWER)
                 .BindOnChangedWorkerEvent(this, (bool power, IRaptorSession session) =>
                 {
                     //If the radio is already in the requested state, ignore
@@ -59,8 +60,10 @@ namespace RaptorSDR.Server.Core.Radio
                         radioRunning = false;
                     }
                 });
-            dpCenterFreq = new RaptorPrimitiveDataProvider<long>(this, "CenterFreq");
+            dpCenterFreq = new RaptorPrimitiveDataProvider<long>(this, "CenterFreq")
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_BASIC);
             dpSource = new RaptorSelectionDataProvider<IPluginSource>(this, "Source", control.PluginSources)
+                .SetRequiredScope(Common.Auth.RaptorScope.CONTROL_BASIC)
                 .BindOnChangedWorkerEvent(this, (IPluginSource source, IRaptorSession session) =>
                 {
                     //If the radio is active, abort
