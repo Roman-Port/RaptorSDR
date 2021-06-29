@@ -15,6 +15,7 @@ namespace RaptorSDR.Server.Common
         string AccessToken { get; }
         string RefreshToken { get; }
         bool IsAdmin { get; }
+        string Username { get; }
 
         bool CheckSystemScope(RaptorScope scope);
         bool CheckSystemScope(params RaptorScope[] scopes);

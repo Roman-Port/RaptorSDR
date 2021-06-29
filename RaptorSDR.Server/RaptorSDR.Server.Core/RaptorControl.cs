@@ -101,6 +101,7 @@ namespace RaptorSDR.Server.Core
         public IRaptorRadio Radio => radio;
         public IRaptorVfo Vfo => vfo;
         public RaptorHttpServer Http => http;
+        public RaptorStatus ServerStatus => RaptorStatus.NEEDS_SETUP;
 
         private IRaptorSettings settings;
         private RaptorInstallation installation;
@@ -118,6 +119,7 @@ namespace RaptorSDR.Server.Core
         private List<IPluginDemodulator> pluginDemodulators = new List<IPluginDemodulator>();
         private List<IPluginSource> pluginSources = new List<IPluginSource>();
         private List<IPluginAudio> pluginAudio = new List<IPluginAudio>();
+        private List<object> pluginInterfaces = new List<object>();
 
         private RaptorHttpServer http;
         private RaptorWebSocketEndpointServer rpc;
@@ -129,6 +131,7 @@ namespace RaptorSDR.Server.Core
         private IRaptorEndpoint rpcDirectoryListing;
         private IRaptorEndpoint rpcDirectoryDrives;
         private IRaptorEndpoint rpcDirectoryVerify;
+        private IRaptorEndpoint rpcPing;
 
         public void Init()
         {
@@ -177,13 +180,22 @@ namespace RaptorSDR.Server.Core
 
             //Create file verify command
             rpcDirectoryVerify = rpcDispatcher.CreateSubscription("FILE_CHECK_ACCESS");
-            rpcDirectoryVerify.OnMessage += RpcDirectoryVerify_OnMessage; ;
+            rpcDirectoryVerify.OnMessage += RpcDirectoryVerify_OnMessage;
+
+            //Create the ping command
+            rpcPing = rpcDispatcher.CreateSubscription("PING");
+            rpcPing.OnMessage += RpcPing_OnMessage;
 
             //Start HTTP server
             http.Start();
 
             //Done
             Log(RaptorLogLevel.LOG, "RaptorControl", $"Server ready Listening on {settings.Listening.ToString()}.");
+        }
+
+        private void RpcPing_OnMessage(IRaptorEndpointClient client, JObject payload)
+        {
+            rpcPing.SendTo(client, payload);
         }
 
         private void RpcDirectoryVerify_OnMessage(IRaptorEndpointClient client, JObject payload)
@@ -218,9 +230,20 @@ namespace RaptorSDR.Server.Core
                 JObject data = new JObject();
                 data["name"] = d.Name;
                 data["path"] = d.RootDirectory.FullName;
-                data["nick"] = d.VolumeLabel;
-                data["size"] = d.TotalSize / 1000;
-                data["free"] = d.AvailableFreeSpace / 1000;
+                try
+                {
+                    data["nick"] = d.VolumeLabel;
+                    data["size"] = d.TotalSize / 1000;
+                    data["free"] = d.AvailableFreeSpace / 1000;
+                    data["ok"] = true;
+                } catch
+                {
+                    //failed to query info. this can happen if this is a CD drive or something like that. fall back to basic values
+                    data["nick"] = d.Name;
+                    data["size"] = 1;
+                    data["free"] = 0;
+                    data["ok"] = false;
+                }
                 roots.Add(data);
             }
 
@@ -295,6 +318,7 @@ namespace RaptorSDR.Server.Core
         {
             //Create
             JObject info = new JObject();
+            info["status"] = ServerStatus.ToString();
             info["version_major"] = VERSION_MAJOR;
             info["version_minor"] = VERSION_MINOR;
             info["icons"] = JToken.FromObject(packagesIcons.GetPackageHashes());
@@ -437,6 +461,31 @@ namespace RaptorSDR.Server.Core
         public IRaptorWebFileInfo ResolveWebFile(IRaptorSession session, string webPathname)
         {
             return new RaptorWebFileInfo(settings, session, webPathname);
+        }
+
+        public void RegisterPluginInterface<T>(T pluginInterface)
+        {
+            pluginInterfaces.Add(pluginInterface);
+        }
+
+        public bool GetPluginInterface<T>(out T pluginInterface)
+        {
+            //Get the specified type
+            Type interfaceType = typeof(T);
+
+            //Search for compatible types
+            foreach(var i in pluginInterfaces)
+            {
+                if(interfaceType.IsAssignableFrom(i.GetType()))
+                {
+                    pluginInterface = (T)i;
+                    return true;
+                }
+            }
+
+            //Failed
+            pluginInterface = default(T);
+            return false;
         }
     }
 }

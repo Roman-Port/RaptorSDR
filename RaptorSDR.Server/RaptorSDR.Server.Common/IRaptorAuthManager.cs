@@ -7,9 +7,10 @@ namespace RaptorSDR.Server.Common
 {
     public interface IRaptorAuthManager
     {
-        RaptorAuthStatus SessionRegister(string username, string password, out IRaptorSession session);
-        RaptorAuthStatus SessionLogin(string username, string password, out IRaptorSession session);
-        RaptorAuthStatus SessionRefresh(string token, out IRaptorSession session);
-        bool Authenticate(string token, out IRaptorSession session);
+        string CreateAccount(string username, string password);
+        string LoginAccount(string username, string password);
+        string InvalidateAccountTokens(string username);
+        void DeleteAccount(string username);
+        bool AuthenticateSession(string token, out IRaptorSession session);
     }
 }

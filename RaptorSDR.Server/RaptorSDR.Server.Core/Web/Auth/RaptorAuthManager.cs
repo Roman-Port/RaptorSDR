@@ -24,10 +24,14 @@ namespace RaptorSDR.Server.Core.Web.Auth
             else
                 db = new RaptorAuthDatabase();
 
+            //Load all registered users into memory
+            foreach (var s in db.users)
+                LoadSession(s);
+
             //A guest user MUST exist. Make sure one exists, even if it has no permissions
-            if(!GetUserByUsername("guest", out RaptorAuthenticatedUserAccount guest))
+            if (!GetAccountByUsername("guest", out RaptorAuthenticatedUserAccount guest))
             {
-                SessionRegister("guest", "raptor", out IRaptorSession guestSession);
+                CreateAccount("guest", "raptor");
             }
 
             //Save
@@ -37,29 +41,38 @@ namespace RaptorSDR.Server.Core.Web.Auth
         private static readonly char[] RAND_CHARSET = "0123456789QWERTYUIOPASDFGHJKLZXCVBNM".ToCharArray();
 
         private RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider(); 
-
         private string authFile;
         private IRaptorControl control;
         private RaptorAuthDatabase db;
-        private ConcurrentDictionary<string, IRaptorSession> sessions = new ConcurrentDictionary<string, IRaptorSession>();
+        private Dictionary<RaptorAuthenticatedUserAccount, RaptorSession> sessions = new Dictionary<RaptorAuthenticatedUserAccount, RaptorSession>();
 
         public IEnumerable<RaptorAuthenticatedUserAccount> EnumerateAccounts()
         { 
             return db.users;
         }
 
-        public RaptorAuthStatus SessionRegister(string username, string password, out IRaptorSession session)
+        public bool GetAccountByUsername(string username, out RaptorAuthenticatedUserAccount account)
         {
-            //Make sure the account does not already exist
-            session = null;
-            if (GetUserByUsername(username, out RaptorAuthenticatedUserAccount account))
-                return RaptorAuthStatus.ACCOUNT_EXISTS;
+            lock(db)
+            {
+                foreach (var a in db.users)
+                {
+                    account = a;
+                    if (a.username == username)
+                        return true;
+                }
+            }
+            account = null;
+            return false;
+        }
 
+        public string CreateAccount(string username, string password)
+        {
             //Validate username and password
             if (username == null || username.Length == 0)
-                return RaptorAuthStatus.MALFORMED_USERNAME;
+                throw new RaptorAuthException(RaptorAuthStatus.MALFORMED_USERNAME);
             if (password == null)
-                return RaptorAuthStatus.MALFORMED_PASSWORD;
+                throw new RaptorAuthException(RaptorAuthStatus.MALFORMED_PASSWORD);
 
             //Create salt
             byte[] salt = new byte[16];
@@ -69,7 +82,7 @@ namespace RaptorSDR.Server.Core.Web.Auth
             byte[] hash = HashPassword(password, salt);
 
             //Make account
-            account = new RaptorAuthenticatedUserAccount
+            RaptorAuthenticatedUserAccount account = new RaptorAuthenticatedUserAccount
             {
                 username = username,
                 password_hash = hash,
@@ -77,121 +90,98 @@ namespace RaptorSDR.Server.Core.Web.Auth
                 is_admin = false,
                 scope_system = 0,
                 scope_plugin = new List<string>(),
-                refresh_token = GenerateRandomSecureString(32),
+                access_token = GenerateRandomSecureString(32),
                 created = DateTime.UtcNow
             };
 
-            //Register account
+            //Register account on disk
             lock (db.users)
             {
+                //Ensure none already exist with this username
+                if(GetAccountByUsername(username, out RaptorAuthenticatedUserAccount accountExisting))
+                    throw new RaptorAuthException(RaptorAuthStatus.ACCOUNT_EXISTS);
+
+                //Add and save
                 db.users.Add(account);
                 Save();
             }
 
-            //Set
-            session = CreateSession(account);
+            //Create session
+            RaptorSession session = LoadSession(account);
 
-            //Check if this account has any permissions
-            if (!account.is_admin && account.scope_system == 0 && account.scope_plugin.Count == 0)
-                return RaptorAuthStatus.NO_PERMISSIONS;
-
-            return RaptorAuthStatus.OK;
+            return account.access_token;
         }
 
-        public RaptorAuthStatus SessionLogin(string username, string password, out IRaptorSession session)
+        public string LoginAccount(string username, string password)
         {
             //Get the account
-            session = null;
-            if (!GetUserByUsername(username, out RaptorAuthenticatedUserAccount account))
-                return RaptorAuthStatus.INVALID_CREDENTIALS;
+            if (!GetAccountByUsername(username, out RaptorAuthenticatedUserAccount account))
+                throw new RaptorAuthException(RaptorAuthStatus.INVALID_CREDENTIALS);
 
             //Generate challenge hash
             byte[] challenge = HashPassword(password, account.salt);
 
             //Compare the saved hash to the challenge hash
-            bool ok = true;
             for (int i = 0; i < challenge.Length; i++)
-                ok = ok && account.password_hash[i] == challenge[i];
-
-            //If bad, abort
-            if (!ok)
-                return RaptorAuthStatus.INVALID_CREDENTIALS;
-
-            //Make new session
-            session = CreateSession(account);
-
-            //Check if this account has any permissions
-            if (!account.is_admin && account.scope_system == 0 && account.scope_plugin.Count == 0)
-                return RaptorAuthStatus.NO_PERMISSIONS;
-
-            return RaptorAuthStatus.OK;
-        }
-
-        public RaptorAuthStatus SessionRefresh(string token, out IRaptorSession session)
-        {
-            //Find matching account
-            lock (db.users)
             {
-                foreach (var a in db.users)
-                {
-                    if (a.refresh_token == token && token != null)
-                    {
-                        session = CreateSession(a);
-                        return RaptorAuthStatus.OK;
-                    }
-                }
+                if(account.password_hash[i] != challenge[i])
+                    throw new RaptorAuthException(RaptorAuthStatus.INVALID_CREDENTIALS);
             }
 
-            //Failed
-            session = null;
-            return RaptorAuthStatus.INVALID_CREDENTIALS;
+            return account.access_token;
         }
 
-        public void RemoveAccount(RaptorAuthenticatedUserAccount account)
+        public string InvalidateAccountTokens(string username)
         {
-            db.users.Remove(account);
+            //Get the account
+            if (GetAccountByUsername(username, out RaptorAuthenticatedUserAccount account))
+                throw new RaptorAuthException(RaptorAuthStatus.INVALID_CREDENTIALS);
+
+            //Reset
+            account.access_token = GenerateRandomSecureString(32);
+            Save();
+
+            return account.access_token;
+        }
+
+        public void DeleteAccount(string username)
+        {
+            //Get the account
+            if (GetAccountByUsername(username, out RaptorAuthenticatedUserAccount account))
+                throw new RaptorAuthException(RaptorAuthStatus.INVALID_CREDENTIALS);
+
+            //Reset
+            lock (db)
+                db.users.Remove(account);
+            lock (sessions)
+                sessions.Remove(account);
             Save();
         }
 
-        private IRaptorSession CreateSession(RaptorUserAccount account)
+        public bool AuthenticateSession(string token, out IRaptorSession session)
         {
-            //Create session
-            RaptorSession session = new RaptorSession(control, GenerateRandomSecureString(16), null, account);
-
-            //Add session
-            string token;
-            do
+            //Search for an account with the same token
+            lock (db)
             {
-                token = GenerateRandomSecureString(32);
-            } while (!sessions.TryAdd(token, session));
-
-            //Update
-            session.SetToken(token);
-
-            return session;
-        }
-
-        public bool Authenticate(string token, out IRaptorSession session)
-        {
-            session = null;
-            return token != null && sessions.TryGetValue(token, out session);
-        }
-
-        public bool GetUserByUsername(string username, out RaptorAuthenticatedUserAccount account)
-        {
-            lock(db.users)
-            {
-                foreach(var a in db.users)
+                foreach (var a in db.users)
                 {
-                    if (a.username == username)
+                    if (a.access_token == token)
                     {
-                        account = a;
+                        session = sessions[a];
                         return true;
                     }
                 }
             }
-            account = null;
+
+            session = null;
             return false;
+        }
+
+        private RaptorSession LoadSession(RaptorAuthenticatedUserAccount info)
+        {
+            var session = new RaptorSession(control, GenerateRandomSecureString(8), info);
+            sessions.Add(info, session);
+            return session;
         }
 
         public void Save()

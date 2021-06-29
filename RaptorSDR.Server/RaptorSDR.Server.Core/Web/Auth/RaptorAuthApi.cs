@@ -12,7 +12,10 @@ namespace RaptorSDR.Server.Core.Web.Auth
         public RaptorAuthApi(RaptorControl control, RaptorHttpServer http)
         {
             this.control = control;
+            http.BindToEndpoint("/accounts/register", HandleRegister);
             http.BindToEndpoint("/accounts/login", HandleLogin);
+            http.BindToEndpoint("/accounts/logout", HandleLogout);
+            http.BindToEndpoint("/accounts/info", HandleInfo);
         }
 
         private RaptorControl control;
@@ -20,53 +23,149 @@ namespace RaptorSDR.Server.Core.Web.Auth
         private void HandleLogin(RaptorHttpContext ctx)
         {
             //Read request body
-            RequestBody request = ctx.ReadBodyAsJson<RequestBody>();
+            UserRequest request = ctx.ReadBodyAsJson<UserRequest>();
 
-            //Process
-            IRaptorSession session;
-            RaptorAuthStatus status;
-            switch(request.auth_type)
+            //Begin forming response
+            UserResponse response = new UserResponse
             {
-                case "PASSWORD":
-                    status = control.Auth.SessionLogin(request.username, request.password, out session);
-                    break;
-                case "REFRESH":
-                    status = control.Auth.SessionRefresh(request.refresh_token, out session);
-                    break;
-                default:
-                    session = null;
-                    status = RaptorAuthStatus.INVALID_LOGIN_METHOD;
-                    break;
+                ok = false,
+                status = null,
+                info = null,
+                access_token = null
+            };
+
+            //Attempt to register
+            try
+            {
+                response.access_token = control.Auth.LoginAccount(request.username, request.password);
+                response.ok = true;
+                response.status = "OK";
+            }
+            catch (RaptorAuthException ex)
+            {
+                response.ok = false;
+                response.status = ex.Status.ToString();
             }
 
-            //Write
-            ctx.WriteBodyAsJson(new ResponseBody
+            //Get user info
+            if (control.Auth.AuthenticateSession(response.access_token, out IRaptorSession session))
+                response.info = CreateUserInfo(session);
+
+            //Send
+            ctx.WriteBodyAsJson(response);
+        }
+
+        private void HandleRegister(RaptorHttpContext ctx)
+        {
+            //Read request body
+            UserRequest request = ctx.ReadBodyAsJson<UserRequest>();
+
+            //Begin forming response
+            UserResponse response = new UserResponse
             {
-                status = status.ToString(),
-                session_token = session == null ? null : session.AccessToken,
-                refresh_token = session == null ? null : session.RefreshToken,
-                id = session == null ? null : session.Id,
-                ok = (int)status >= 0
+                ok = false,
+                status = null,
+                info = null,
+                access_token = null
+            };
+
+            //Attempt to register
+            try
+            {
+                response.access_token = control.Auth.CreateAccount(request.username, request.password);
+                response.ok = true;
+                response.status = "OK";
+            }
+            catch (RaptorAuthException ex)
+            {
+                response.ok = false;
+                response.status = ex.Status.ToString();
+            }
+
+            //Get user info
+            if (control.Auth.AuthenticateSession(response.access_token, out IRaptorSession session))
+                response.info = CreateUserInfo(session);
+
+            //Send
+            ctx.WriteBodyAsJson(response);
+        }
+
+        private void HandleLogout(RaptorHttpContext ctx)
+        {
+            //Read request body
+            TokenRequest request = ctx.ReadBodyAsJson<TokenRequest>();
+
+            //Get session
+            bool ok = false;
+            if (control.Auth.AuthenticateSession(request.access_token, out IRaptorSession session))
+            {
+                control.Auth.InvalidateAccountTokens(session.Username);
+                ok = true;
+            }
+
+            //Send
+            ctx.WriteBodyAsJson(new TokenResponse
+            {
+                ok = ok
             });
         }
 
-        class RequestBody
+        private void HandleInfo(RaptorHttpContext ctx)
         {
-            public string auth_type;
+            //Read request body
+            TokenRequest request = ctx.ReadBodyAsJson<TokenRequest>();
 
-            public string refresh_token;
+            //Get session
+            if (control.Auth.AuthenticateSession(request.access_token, out IRaptorSession session))
+                ctx.WriteBodyAsJson(CreateUserInfo(session));
+            else
+                ctx.StatusCode = System.Net.HttpStatusCode.Unauthorized;
+        }
 
+        private UserInfo CreateUserInfo(IRaptorSession sessionBase)
+        {
+            //Get session as a RaptorSession
+            RaptorSession session = (RaptorSession)sessionBase;
+
+            //Create
+            return new UserInfo
+            {
+                admin = session.Info.is_admin,
+                scope_system = session.Info.scope_system,
+                scope_plugin = session.Info.scope_plugin.ToArray()
+            };
+        }
+
+        class TokenRequest
+        {
+            public string access_token;
+        }
+
+        class TokenResponse
+        {
+            public bool ok;
+        }
+
+        class UserRequest
+        {
             public string username;
             public string password;
         }
 
-        class ResponseBody
+        class UserResponse
         {
-            public string status;
-            public string session_token;
-            public string refresh_token;
-            public string id;
             public bool ok;
+            public string status;
+            public string access_token;
+
+            public UserInfo info;
+        }
+
+        class UserInfo
+        {
+            public bool admin;
+            public ulong scope_system;
+            public string[] scope_plugin;
         }
     }
 }

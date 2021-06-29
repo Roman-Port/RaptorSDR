@@ -23,7 +23,7 @@ namespace RaptorSDR.Server.CLI.Accounts
             }
             
             //Remove
-            Auth.RemoveAccount(account);
+            Auth.DeleteAccount(account.username);
 
             //Tell the user
             Console.WriteLine($"Account \"{account.username}\" deleted.");

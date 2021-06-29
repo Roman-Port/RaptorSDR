@@ -145,6 +145,12 @@ namespace RaptorSDR.Server.Core.Web.HTTP
                 wr.Write(content);
         }
 
+        public void WriteText(string text)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(text);
+            OutputStream.Write(data, 0, data.Length);
+        }
+
         /// <summary>
         /// Automatically authenticates the user and returns errors if it failed. Do nothing but quit if false is returned.
         /// </summary>
@@ -153,7 +159,7 @@ namespace RaptorSDR.Server.Core.Web.HTTP
         public bool AuthenticateSession(IRaptorControl ctx, out IRaptorSession session)
         {
             session = null;
-            if(TryGetQueryParameter("access_token", out string token) && ctx.Auth.Authenticate(token, out session))
+            if(TryGetQueryParameter("access_token", out string token) && ctx.Auth.AuthenticateSession(token, out session))
             {
                 //OK
                 return true;

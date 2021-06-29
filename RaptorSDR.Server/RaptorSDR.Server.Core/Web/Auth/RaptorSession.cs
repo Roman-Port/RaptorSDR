@@ -9,26 +9,30 @@ namespace RaptorSDR.Server.Core.Web.Auth
 {
     public class RaptorSession : IRaptorSession
     {
-        public RaptorSession(IRaptorControl control, string id, string token, RaptorUserAccount info)
+        public RaptorSession(IRaptorControl control, string id, RaptorAuthenticatedUserAccount info)
         {
             this.control = control;
             this.id = id;
-            this.token = token;
             this.info = info;
+            this.token = info.access_token;
         }
 
         private string id;
         private string token;
-        private RaptorUserAccount info;
+        private RaptorAuthenticatedUserAccount info;
         private IRaptorControl control;
 
         public string Id => id;
 
         public string AccessToken => token;
 
-        public string RefreshToken => info.refresh_token;
+        public string RefreshToken => info.access_token;
 
         public bool IsAdmin => info.is_admin;
+
+        public RaptorUserAccount Info => info;
+
+        public string Username => info.username;
 
         public bool CheckSystemScope(RaptorScope scope)
         {

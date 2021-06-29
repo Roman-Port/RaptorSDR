@@ -28,16 +28,13 @@ namespace RaptorSDR.Server.CLI.Accounts
             }
 
             //Create account
-            RaptorAuthStatus status = auth.SessionRegister(username, password, out IRaptorSession session);
-            if((int)status < 0)
+            try
             {
-                //Error
-                Console.WriteLine("Failed to create account: " + status.ToString());
-            } else
-            {
-                //Success
+                string token = auth.CreateAccount(username, password);
                 Console.WriteLine($"Created account \"{username}\" successfully.");
-                Console.WriteLine("Access token (valid until server restart): " + session.AccessToken);
+            } catch (RaptorAuthException error)
+            {
+                Console.WriteLine("Failed to create account: " + error.Status.ToString());
             }
         }
     }

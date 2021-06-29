@@ -22,7 +22,7 @@ namespace RaptorSDR.Server.CLI.Accounts
             }
 
             //Get the user account
-            if(!Auth.GetUserByUsername(username, out RaptorAuthenticatedUserAccount account))
+            if(!Auth.GetAccountByUsername(username, out RaptorAuthenticatedUserAccount account))
             {
                 Console.WriteLine($"Error: User \"{username}\" couldn't be found.");
                 return;

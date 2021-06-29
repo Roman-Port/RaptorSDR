@@ -34,5 +34,8 @@ namespace RaptorSDR.Server.Common
         void RegisterPluginDemodulator(RaptorPlugin plugin, IPluginDemodulator demodulator);
         void RegisterPluginSource(RaptorPlugin plugin, IPluginSource source);
         void RegisterPluginAudio(RaptorPlugin plugin, IPluginAudio audio);
+        void RegisterPluginInterface<T>(T pluginInterface);
+
+        bool GetPluginInterface<T>(out T pluginInterface);
     }
 }

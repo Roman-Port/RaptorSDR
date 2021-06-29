@@ -10,6 +10,6 @@ namespace RaptorSDR.Server.Common.Auth
         public List<string> scope_plugin;
         public bool is_admin;
         public DateTime created;
-        public string refresh_token;
+        public string access_token;
     }
 }

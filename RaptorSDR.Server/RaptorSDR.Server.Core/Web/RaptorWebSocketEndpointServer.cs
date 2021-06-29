@@ -28,30 +28,25 @@ namespace RaptorSDR.Server.Core.Web
         private List<EndpointClient> clients = new List<EndpointClient>();
         private IRaptorContext ctx;
 
-        private static byte[] SerializeToArray(JObject group)
-        {
-            byte[] payload;
-            using (MemoryStream ms = new MemoryStream())
-            using (BsonDataWriter reader = new BsonDataWriter(ms))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(reader, group);
-                payload = ms.ToArray();
-            }
-            return payload;
-        }
-
         private void OnHttpRequest(RaptorHttpContext ctx)
         {
             //First, authenticate the client
             if (!ctx.AuthenticateSession(this.ctx.Control, out IRaptorSession session))
                 return;
 
+            //Now, get the encoding type
+            if(!ctx.TryGetQueryParameter("encoding", out string encodingString) || !Enum.TryParse(encodingString, out EndpointClientEncoding encoding))
+            {
+                ctx.StatusCode = System.Net.HttpStatusCode.BadRequest;
+                ctx.WriteText("Encoding was not specified or was invalid. Must be JSON, BSON.");
+                return;
+            }
+
             //Open as WebSocket
             var sock = ctx.AsWebSocket();
 
             //Wrap as client
-            var client = new EndpointClient(this, sock, session);
+            var client = new EndpointClient(this, sock, session, encoding);
 
             //Log
             ctx.Log(RaptorLogLevel.DEBUG, "RaptorWebSocketEndpointServer", $"Client {session.Id} connected to RPC.");
@@ -66,9 +61,9 @@ namespace RaptorSDR.Server.Core.Web
             {
                 client.RunLoop();
             }
-            catch
+            catch (Exception ex)
             {
-                ctx.Log(RaptorLogLevel.LOG, "RaptorWebSocketEndpointServer", $"Client {session.Id} disconnected ungracefully!");
+                ctx.Log(RaptorLogLevel.LOG, "RaptorWebSocketEndpointServer", $"Client {session.Id} disconnected ungracefully: {ex.Message} {ex.StackTrace}");
             }
 
             //Log
@@ -82,14 +77,11 @@ namespace RaptorSDR.Server.Core.Web
 
         public void SendAll(JObject payload)
         {
-            //Serialize
-            byte[] serialized = SerializeToArray(payload);
-
             //Broadcast to all
             lock (clients)
             {
                 foreach (var c in clients)
-                    c.SendBinary(serialized);
+                    c.SendMessage(payload);
             }
         }
 
@@ -104,37 +96,40 @@ namespace RaptorSDR.Server.Core.Web
             OnMessage?.Invoke(client, message);
         }
 
+        enum EndpointClientEncoding
+        {
+            JSON,
+            BSON
+        }
+
         class EndpointClient : IRaptorEndpointClient
         {
-            public EndpointClient(RaptorWebSocketEndpointServer server, RaptorWebSocket client, IRaptorSession session)
+            public EndpointClient(RaptorWebSocketEndpointServer server, RaptorWebSocket client, IRaptorSession session, EndpointClientEncoding encoding)
             {
                 this.server = server;
                 this.client = client;
                 this.session = session;
+                this.encoding = encoding;
             }
 
             private RaptorWebSocketEndpointServer server;
             private RaptorWebSocket client;
             private IRaptorSession session;
+            private EndpointClientEncoding encoding;
 
             public IRaptorSession Session => session;
 
             public void SendMessage(JObject message)
             {
-                //Serialize
-                byte[] serialized = SerializeToArray(message);
+                //Determine how to send the message from the encoding
+                ushort wsOpcode = PrepareMessageOutgoing(message, out byte[] payload);
 
-                //Broadcast
-                SendBinary(serialized);
-            }
-
-            public void SendBinary(byte[] serialized)
-            {
+                //Send on wire
                 client.SendFrame(new WebSocketFrame
                 {
-                    opcode = WebSocketFrame.OPCODE_BINARY,
-                    payload = serialized,
-                    payloadLen = serialized.Length
+                    opcode = wsOpcode,
+                    payload = payload,
+                    payloadLen = payload.Length
                 });
             }
 
@@ -147,25 +142,60 @@ namespace RaptorSDR.Server.Core.Web
                     //Read
                     frame = client.ReadFrame();
 
-                    //If this is binary, go
-                    if(frame.opcode == WebSocketFrame.OPCODE_BINARY)
-                    {
-                        //Deserialize
+                    //If this message isn't binary or text, ignore it
+                    if (frame.opcode != WebSocketFrame.OPCODE_BINARY && frame.opcode != WebSocketFrame.OPCODE_TEXT)
+                        continue;
+
+                    //Decode based on the encoding settings
+                    JObject group = PrepareMessageIncoming(frame.payload, frame.payloadLen);
+
+                    //Dispatch
+                    server.OnClientSentMessage(this, group);
+                } while (frame.opcode != WebSocketFrame.OPCODE_CLOSE);
+
+                //Client sent graceful close. Sending back our own...
+                client.SendFrame(frame);
+            }
+
+            private JObject PrepareMessageIncoming(byte[] payload, int length)
+            {
+                switch(encoding)
+                {
+                    case EndpointClientEncoding.BSON:
                         JObject group;
-                        using (MemoryStream ms = new MemoryStream(frame.payload, 0, frame.payloadLen))
+                        using (MemoryStream ms = new MemoryStream(payload, 0, length))
                         using (BsonDataReader reader = new BsonDataReader(ms))
                         {
                             JsonSerializer serializer = new JsonSerializer();
                             group = serializer.Deserialize<JObject>(reader);
                         }
+                        return group;
+                    case EndpointClientEncoding.JSON:
+                        return JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(payload, 0, length));
+                    default:
+                        throw new Exception("Unknown encoding type.");
+                }
+            }
 
-                        //Dispatch
-                        server.OnClientSentMessage(this, group);
-                    }
-                } while (frame.opcode != WebSocketFrame.OPCODE_CLOSE);
-
-                //Client sent graceful close. Sending back our own...
-                client.SendFrame(frame);
+            private ushort PrepareMessageOutgoing(JObject message, out byte[] payload)
+            {
+                switch (encoding)
+                {
+                    case EndpointClientEncoding.BSON:
+                        using (MemoryStream ms = new MemoryStream())
+                        using (BsonDataWriter reader = new BsonDataWriter(ms))
+                        {
+                            JsonSerializer serializer = new JsonSerializer();
+                            serializer.Serialize(reader, message);
+                            payload = ms.ToArray();
+                        }
+                        return WebSocketFrame.OPCODE_BINARY;
+                    case EndpointClientEncoding.JSON:
+                        payload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+                        return WebSocketFrame.OPCODE_TEXT;
+                    default:
+                        throw new Exception("Unknown encoding type.");
+                }
             }
         }
     }
