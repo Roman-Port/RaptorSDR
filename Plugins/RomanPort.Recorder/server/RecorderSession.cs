@@ -24,6 +24,9 @@ namespace RomanPort.Recorder
             //Create buffer (it'll grow over time if needed)
             processingBuffer = new RecorderGrowingBuffer<float>(bufferSize);
 
+            //Create working buffer for thread
+            threadBuffer = UnsafeBuffer.Create(bufferSize, out threadBufferPtr);
+
             //Start worker threads
             worker = new Thread(WorkerThread);
             worker.IsBackground = true;
@@ -35,6 +38,8 @@ namespace RomanPort.Recorder
         private readonly int bufferSize;
         private readonly int channels;
         private readonly RecorderGrowingBuffer<float> processingBuffer;
+        private readonly UnsafeBuffer threadBuffer;
+        private readonly float* threadBufferPtr;
         private readonly Thread worker;
 
         private RecorderStatus status = RecorderStatus.IDLE;
@@ -107,9 +112,6 @@ namespace RomanPort.Recorder
             bool isRecording = false;
             long sampleRate = this.sampleRate;
             string outputFile;
-
-            //Create working buffer for thread
-            UnsafeBuffer threadBuffer = UnsafeBuffer.Create(bufferSize, out float* threadBufferPtr);
 
             //Create the rewind buffer
             RecorderCircularBuffer<float> rewindBuffer = new RecorderCircularBuffer<float>(settings.rewindBufferSeconds * sampleRate * channels);
