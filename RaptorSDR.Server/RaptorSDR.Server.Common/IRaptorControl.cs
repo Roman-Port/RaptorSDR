@@ -36,6 +36,9 @@ namespace RaptorSDR.Server.Common
         void RegisterPluginAudio(RaptorPlugin plugin, IPluginAudio audio);
         void RegisterPluginInterface<T>(T pluginInterface);
 
+        void WriteSetting<T>(RaptorNamespace group, string key, T value);
+        T ReadSetting<T>(RaptorNamespace group, string key, T defaultValue);
+
         bool GetPluginInterface<T>(out T pluginInterface);
     }
 }

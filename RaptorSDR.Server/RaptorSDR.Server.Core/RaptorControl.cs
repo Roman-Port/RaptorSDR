@@ -170,21 +170,11 @@ namespace RaptorSDR.Server.Core
             rpcPostConnected = rpcDispatcher.CreateSubscription("LOGIN_COMPLETED");
             rpcPostConnected.OnClientConnected += RaptorControl_OnClientConnected;
 
-            //Create directory listing command
-            rpcDirectoryListing = rpcDispatcher.CreateSubscription("FILE_DIR_LISTING");
-            rpcDirectoryListing.OnMessage += RpcDirectoryListing_OnMessage;
-
-            //Create drive list command
-            rpcDirectoryDrives = rpcDispatcher.CreateSubscription("FILE_GET_ROOTS");
-            rpcDirectoryDrives.OnMessage += RpcDirectoryDrives_OnMessage;
-
-            //Create file verify command
-            rpcDirectoryVerify = rpcDispatcher.CreateSubscription("FILE_CHECK_ACCESS");
-            rpcDirectoryVerify.OnMessage += RpcDirectoryVerify_OnMessage;
-
-            //Create the ping command
-            rpcPing = rpcDispatcher.CreateSubscription("PING");
-            rpcPing.OnMessage += RpcPing_OnMessage;
+            //Create other endpoints
+            rpcDirectoryListing = rpcDispatcher.CreateSubscription("FILE_DIR_LISTING").BindOnMessage(RpcDirectoryListing_OnMessage);
+            rpcDirectoryDrives = rpcDispatcher.CreateSubscription("FILE_GET_ROOTS").BindOnMessage(RpcDirectoryDrives_OnMessage);
+            rpcDirectoryVerify = rpcDispatcher.CreateSubscription("FILE_CHECK_ACCESS").BindOnMessage(RpcDirectoryVerify_OnMessage);
+            rpcPing = rpcDispatcher.CreateSubscription("PING").BindOnMessage(RpcPing_OnMessage);
 
             //Start HTTP server
             http.Start();
@@ -193,12 +183,12 @@ namespace RaptorSDR.Server.Core
             Log(RaptorLogLevel.LOG, "RaptorControl", $"Server ready Listening on {settings.Listening.ToString()}.");
         }
 
-        private void RpcPing_OnMessage(IRaptorEndpointClient client, JObject payload)
+        private void RpcPing_OnMessage(IRaptorEndpoint endpoint, IRaptorEndpointClient client, JObject payload)
         {
             rpcPing.SendTo(client, payload);
         }
 
-        private void RpcDirectoryVerify_OnMessage(IRaptorEndpointClient client, JObject payload)
+        private void RpcDirectoryVerify_OnMessage(IRaptorEndpoint endpoint, IRaptorEndpointClient client, JObject payload)
         {
             //Get arguments
             bool valid = payload.TryGetValue("path", out JToken pathValue) && pathValue.Type == JTokenType.String;
@@ -218,7 +208,7 @@ namespace RaptorSDR.Server.Core
             rpcDirectoryVerify.SendTo(client, response);
         }
 
-        private void RpcDirectoryDrives_OnMessage(IRaptorEndpointClient client, JObject incomingPayload)
+        private void RpcDirectoryDrives_OnMessage(IRaptorEndpoint endpoint, IRaptorEndpointClient client, JObject incomingPayload)
         {
             //Prepare response
             JArray roots = new JArray();
@@ -255,7 +245,7 @@ namespace RaptorSDR.Server.Core
             rpcDirectoryDrives.SendTo(client, payload);
         }
 
-        private void RpcDirectoryListing_OnMessage(IRaptorEndpointClient client, JObject payload)
+        private void RpcDirectoryListing_OnMessage(IRaptorEndpoint endpoint, IRaptorEndpointClient client, JObject payload)
         {
             JObject response = new JObject();
             response["token"] = payload["token"];
@@ -379,7 +369,7 @@ namespace RaptorSDR.Server.Core
             return arr;
         }
 
-        private void RaptorControl_OnClientConnected(IRaptorEndpointClient client, IRaptorSession session)
+        private void RaptorControl_OnClientConnected(IRaptorEndpoint endpoint, IRaptorEndpointClient client, IRaptorSession session)
         {
             JObject payload = new JObject();
             payload["session_id"] = client.Session.Id;
@@ -486,6 +476,38 @@ namespace RaptorSDR.Server.Core
             //Failed
             pluginInterface = default(T);
             return false;
+        }
+
+        public void WriteSetting<T>(RaptorNamespace group, string key, T value)
+        {
+            //Get the group
+            JObject groupData = GetRuntimeSettingsGroup(group);
+
+            //Write
+            groupData[key] = JToken.FromObject(value);
+
+            //Save
+            settings.SaveRuntimeSettings();
+        }
+
+        public T ReadSetting<T>(RaptorNamespace group, string key, T defaultValue)
+        {
+            //Get the group
+            JObject groupData = GetRuntimeSettingsGroup(group);
+
+            //Write if there is no value
+            if(!groupData.ContainsKey(key))
+                WriteSetting(group, key, defaultValue);
+
+            return groupData[key].ToObject<T>();
+        }
+
+        private JObject GetRuntimeSettingsGroup(RaptorNamespace group)
+        {
+            string key = group.Id;
+            if (!settings.RuntimeSettings.ContainsKey(key))
+                settings.RuntimeSettings.Add(key, new JObject());
+            return (JObject)settings.RuntimeSettings[key];
         }
     }
 }

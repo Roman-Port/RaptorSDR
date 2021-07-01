@@ -30,8 +30,8 @@ namespace RaptorSDR.Server.Common.Dispatchers
                 this.parent = parent;
                 this.opcode = opcode;
                 parent.OnMessage += Parent_OnMessage;
-                parent.OnClientLost += (IRaptorEndpointClient client, IRaptorSession session) => OnClientLost?.Invoke(client, session);
-                parent.OnClientConnected += (IRaptorEndpointClient client, IRaptorSession session) => OnClientConnected?.Invoke(client, session);
+                parent.OnClientLost += (IRaptorEndpoint ep, IRaptorEndpointClient client, IRaptorSession session) => OnClientLost?.Invoke(ep, client, session);
+                parent.OnClientConnected += (IRaptorEndpoint ep, IRaptorEndpointClient client, IRaptorSession session) => OnClientConnected?.Invoke(ep, client, session);
             }
 
             private string opcode;
@@ -41,10 +41,10 @@ namespace RaptorSDR.Server.Common.Dispatchers
             public event IRaptorEndpoint_ClientStatusChanged OnClientConnected;
             public event IRaptorEndpoint_MessageEventArgs OnMessage;
 
-            private void Parent_OnMessage(IRaptorEndpointClient client, JObject payload)
+            private void Parent_OnMessage(IRaptorEndpoint ep, IRaptorEndpointClient client, JObject payload)
             {
                 if (payload.ContainsKey("op") && payload.ContainsKey("d") && (string)payload["op"] == opcode)
-                    OnMessage?.Invoke(client, (JObject)payload["d"]);
+                    OnMessage?.Invoke(this, client, (JObject)payload["d"]);
             }
 
             public void SendAll(JObject payload)
@@ -61,6 +61,12 @@ namespace RaptorSDR.Server.Common.Dispatchers
                 output["op"] = opcode;
                 output["d"] = payload;
                 parent.SendTo(client, output);
+            }
+
+            public IRaptorEndpoint BindOnMessage(IRaptorEndpoint_MessageEventArgs evt)
+            {
+                OnMessage += evt;
+                return this;
             }
         }
     }

@@ -40,5 +40,20 @@ namespace RaptorSDR.Server.Common
         {
             control.RegisterPluginAudio(this, audio);
         }
+
+        protected T ReadPluginSetting<T>(string key, T defaultValue)
+        {
+            return control.ReadSetting(Id, key, defaultValue);
+        }
+
+        protected void WritePluginSetting<T>(string key, T value)
+        {
+            control.WriteSetting(Id, key, value);
+        }
+
+        protected IRaptorEndpoint CreateEndpoint(string name)
+        {
+            return PluginRpc.CreateSubscription(name);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RaptorSDR.Server.Common;
+﻿using Newtonsoft.Json.Linq;
+using RaptorSDR.Server.Common;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -11,5 +12,8 @@ namespace RaptorSDR.Server.Core
         string InstallPath { get; }
         string ManagedPath { get; }
         IPEndPoint Listening { get; }
+
+        JObject RuntimeSettings { get; }
+        void SaveRuntimeSettings();
     }
 }

@@ -1,4 +1,6 @@
-﻿using RaptorSDR.Server.Common;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RaptorSDR.Server.Common;
 using RaptorSDR.Server.Core;
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,17 @@ namespace RaptorSDR.Server
 {
     public class RaptorSettings : IRaptorSettings
     {
+        public RaptorSettings()
+        {
+            //Load runtime settings if the file exists
+            if (File.Exists(RuntimeSettingsPath))
+                runtimeSettings = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(RuntimeSettingsPath));
+            else
+                runtimeSettings = new JObject();
+        }
+
+        private JObject runtimeSettings;
+        
         public string InstallPath
         {
             get
@@ -30,6 +43,10 @@ namespace RaptorSDR.Server
 
         public string ManagedPath => InstallPath + "Managed\\";
 
+        public string RuntimeSettingsPath => InstallPath + "settings.json";
+
+        public JObject RuntimeSettings => runtimeSettings;
+
         public void Log(RaptorLogLevel level, string topic, string message)
         {
             //Set color
@@ -47,6 +64,11 @@ namespace RaptorSDR.Server
 
             //Rset
             Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        public void SaveRuntimeSettings()
+        {
+            File.WriteAllText(RuntimeSettingsPath, JsonConvert.SerializeObject(runtimeSettings, Formatting.Indented));
         }
     }
 }
