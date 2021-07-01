@@ -14,8 +14,6 @@ namespace RaptorSDR.Server.Common
         event IRaptorEndpoint_ClientStatusChanged OnClientConnected;
         event IRaptorEndpoint_MessageEventArgs OnMessage;
 
-        IRaptorEndpoint BindOnMessage(IRaptorEndpoint_MessageEventArgs evt);
-
         void SendAll(JObject payload);
         void SendTo(IRaptorEndpointClient client, JObject payload);
     }

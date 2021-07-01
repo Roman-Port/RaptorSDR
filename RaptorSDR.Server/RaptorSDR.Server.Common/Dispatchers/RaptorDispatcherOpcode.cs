@@ -62,12 +62,6 @@ namespace RaptorSDR.Server.Common.Dispatchers
                 output["d"] = payload;
                 parent.SendTo(client, output);
             }
-
-            public IRaptorEndpoint BindOnMessage(IRaptorEndpoint_MessageEventArgs evt)
-            {
-                OnMessage += evt;
-                return this;
-            }
         }
     }
 }

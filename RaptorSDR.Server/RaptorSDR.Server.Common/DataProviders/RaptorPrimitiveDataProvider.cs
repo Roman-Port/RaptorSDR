@@ -74,12 +74,12 @@ namespace RaptorSDR.Server.Common.DataProviders
             return this;
         }
 
-        private void EndpointSetValue_OnClientConnected(IRaptorEndpointClient client, IRaptorSession session)
+        private void EndpointSetValue_OnClientConnected(IRaptorEndpoint ep, IRaptorEndpointClient client, IRaptorSession session)
         {
             WebNotifyUpdated(null, client);
         }
 
-        private void EndpointSetValue_OnMessage(IRaptorEndpointClient client, JObject message)
+        private void EndpointSetValue_OnMessage(IRaptorEndpoint ep, IRaptorEndpointClient client, JObject message)
         {
             //Make sure we have permission
             if (!CheckIfWritePermitted(client.Session))

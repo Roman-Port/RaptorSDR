@@ -50,7 +50,7 @@ namespace RaptorSDR.Server.Core.Web
 
             //Log
             ctx.Log(RaptorLogLevel.DEBUG, "RaptorWebSocketEndpointServer", $"Client {session.Id} connected to RPC.");
-            OnClientConnected?.Invoke(client, session);
+            OnClientConnected?.Invoke(this, client, session);
 
             //Add to clients
             lock (clients)
@@ -67,7 +67,7 @@ namespace RaptorSDR.Server.Core.Web
             }
 
             //Log
-            OnClientLost?.Invoke(client, session);
+            OnClientLost?.Invoke(this, client, session);
             ctx.Log(RaptorLogLevel.DEBUG, "RaptorWebSocketEndpointServer", $"Client {session.Id} disconnected from RPC.");
 
             //Remove from clients
@@ -93,7 +93,7 @@ namespace RaptorSDR.Server.Core.Web
 
         private void OnClientSentMessage(IRaptorEndpointClient client, JObject message)
         {
-            OnMessage?.Invoke(client, message);
+            OnMessage?.Invoke(this, client, message);
         }
 
         enum EndpointClientEncoding
