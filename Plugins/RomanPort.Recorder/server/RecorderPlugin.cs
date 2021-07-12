@@ -5,11 +5,8 @@ using RomanPort.Recorder.Config;
 
 namespace RomanPort.Recorder
 {
-    public class RecorderPlugin : RaptorPlugin
+    public partial class RecorderPlugin : RaptorPlugin
     {
-        public override string DeveloperName => "RomanPort";
-        public override string PluginName => "Recorder";
-
         private RecorderSettings[] settings;
         private RecorderSessionApi[] sessions;
 

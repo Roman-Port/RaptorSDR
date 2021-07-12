@@ -4,11 +4,8 @@ using RomanPort.ViewSpectrum.API;
 
 namespace RomanPort.DemodulatorWbFm
 {
-    public unsafe class DemodulatorWbFmPlugin : RaptorPlugin
+    public unsafe partial class DemodulatorWbFmPlugin : RaptorPlugin
     {
-        public override string DeveloperName => "RomanPort";
-        public override string PluginName => "DemodulatorWbFm";
-
         private WebDemodulator demod;
         
         public DemodulatorWbFmPlugin(IRaptorControl control) : base(control)

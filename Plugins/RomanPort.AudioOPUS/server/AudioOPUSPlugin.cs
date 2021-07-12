@@ -5,11 +5,8 @@ using RaptorSDR.Server.Common.WebStream;
 
 namespace RomanPort.AudioOPUS
 {
-    public class AudioOPUSPlugin : RaptorPlugin, IPluginAudio
+    public partial class AudioOPUSPlugin : RaptorPlugin, IPluginAudio
     {
-        public override string DeveloperName => "RomanPort";
-        public override string PluginName => "AudioOPUS";
-
         private IRaptorWebStreamServer<OpusStreamClient> stream;
         private float inputSampleRate;
 

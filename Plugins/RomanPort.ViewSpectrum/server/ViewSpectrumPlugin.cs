@@ -7,11 +7,8 @@ using RomanPort.ViewSpectrum.Spectrums;
 
 namespace RomanPort.ViewSpectrum
 {
-    public unsafe class ViewSpectrumPlugin : RaptorPlugin, ISpectrumProvider
+    public unsafe partial class ViewSpectrumPlugin : RaptorPlugin, ISpectrumProvider
     {
-        public override string DeveloperName => "RomanPort";
-        public override string PluginName => "ViewSpectrum";
-
         private List<RegisteredSpectrumEntry> spectrums = new List<RegisteredSpectrumEntry>();
         private RaptorPrimitiveDataProvider<List<RegisteredSpectrumEntry>> dpSpectrums;
         private IRegisteredSpectrumComplex mainSpectrum;
