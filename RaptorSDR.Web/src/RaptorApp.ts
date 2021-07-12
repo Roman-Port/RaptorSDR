@@ -8,6 +8,7 @@ import RaptorMenuWindowStore from "./framework/ui/core/xwindow/RaptorMenuWindowS
 import RaptorRootWindowManager from "./framework/ui/core/xwindow/RaptorRootWindowManager";
 import RaptorLoginPage from "./framework/ui/login/RaptorLoginPage";
 import RaptorMenuMount from "./framework/ui/menu/RaptorMenuMount";
+import IRaptorUserInfo from "./framework/web/IRaptorUserInfo";
 
 require("./colors.css");
 require("./main.css");
@@ -56,35 +57,36 @@ export default class RaptorApp {
         //Create preloader view
         var preloader = new RaptorLoginPage(this.mount, this.conn);
 
+        //Get status
+        preloader.SetLoading(true);
+        var status = (await this.conn.GetInfo()).status;
+        preloader.SetLoading(false);
+
         //Authenticate
-        var token = await this.Authenticate(preloader);
+        var info = await this.Authenticate(preloader);
 
         //Connect
         preloader.SetLoading(true);
-        await this.conn.Init(token);
+        await this.conn.Init(info);
         preloader.SetLoading(false);
 
         //Reveal
         preloader.Remove();
     }
 
-    private async Authenticate(preloader: RaptorLoginPage): Promise<string> {
-        //Use the refresh token to attempt to login
+    private async Authenticate(preloader: RaptorLoginPage): Promise<IRaptorUserInfo> {
+        //Attempt to query our user info
         preloader.SetLoading(true);
-        var refreshResponse = await this.conn.GetHttpRequest("/accounts/login", "POST")
-            .SetBody(JSON.stringify({
-                "auth_type": "REFRESH",
-                "refresh_token": localStorage.getItem("RAPTOR_REFRESH_TOKEN")
-            }))
-            .AsJSON<any>();
-        preloader.SetLoading(false);
-
-        //Login if needed, otherwise use the refresh token
-        if (refreshResponse["ok"]) {
-            return refreshResponse["session_token"];
-        } else {
-            return await preloader.PromptLogin();
+        try {
+            var userData = await this.conn.AuthGetInfo();
+            preloader.SetLoading(false);
+            return userData;
+        } catch {
+            preloader.SetLoading(false);
         }
+
+        //Login is needed
+        return await preloader.PromptLogin();
     }
 
 }

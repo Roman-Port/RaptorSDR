@@ -2,18 +2,33 @@ import { RaptorSettingsTab } from "../../../../../../sdk/ui/setting/RaptorSettin
 import RaptorUiUtil from "../../../../../../sdk/util/RaptorUiUtil";
 import RaptorSettingsPage from "../../setting/RaptorSettingsPage";
 import RaptorSettingsStore from "../../setting/RaptorSettingsStore";
+import RaptorSidebarSystem from "./RaptorSidebarSystem";
 
 require("./sidebar_sys.css");
 
 export default class RaptorSidebarSystemTab {
 
-    constructor(container: HTMLElement, tab: RaptorSettingsTab, store: RaptorSettingsStore) {
+    constructor(controller: RaptorSidebarSystem, container: HTMLElement, store: RaptorSettingsStore, tab: RaptorSettingsTab, footerName: string) {
         //Configure
         this.tab = tab;
         this.store = store;
 
+        //Create footer
+        this.footerItem = RaptorUiUtil.CreateDom("div", "rsys_sidebarsys_footer_btn", controller.footer)
+            .AddClass(footerName);
+        this.footerItem.addEventListener("click", () => controller.SetTab(this));
+
         //Create mount
         this.mount = RaptorUiUtil.CreateDom("div", "rsys_sidebarsys_tab", container);
+
+        //Create events
+        this.mount.addEventListener("wheel", (evt: WheelEvent) => {
+            if (this.mount.scrollTop + this.mount.clientHeight >= this.mount.scrollHeight && evt.deltaY > 0) {
+                controller.SwitchTab(1);
+            } else if (this.mount.scrollTop <= 0 && evt.deltaY < 0) {
+                controller.SwitchTab(-1);
+            }
+        });
 
         //Create page
         this.page = new RaptorSettingsPage(this.store.GetProviderSidebar(this.tab));
@@ -24,7 +39,19 @@ export default class RaptorSidebarSystemTab {
     private mount: HTMLElement;
     private tab: RaptorSettingsTab;
     private store: RaptorSettingsStore;
+    private footerItem: HTMLElement;
 
     page: RaptorSettingsPage;
+
+    SetStatus(enabled: boolean) {
+        if (enabled) {
+            this.mount.classList.remove("rsys_sidebarsys_tab_disabled");
+            this.footerItem.classList.add("rsys_sidebarsys_footer_btndown");
+        }
+        else {
+            this.mount.classList.add("rsys_sidebarsys_tab_disabled");
+            this.footerItem.classList.remove("rsys_sidebarsys_footer_btndown");
+        }
+    }
 
 }

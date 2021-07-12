@@ -10,7 +10,7 @@ export default class RaptorSidebarBase {
         this.content = RaptorUiUtil.CreateDom("div", "rsys_sidebar_content", this.body);
     }
 
-    private body: HTMLElement;
+    protected body: HTMLElement;
 
     header: HTMLElement;
     content: HTMLElement;

@@ -1,0 +1,63 @@
+.rsys_asettings {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.rsys_asettings_sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: #1c1f21;
+    width: 180px;
+    overflow-y: auto;
+}
+
+.rsys_asettings_body {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 180px;
+    right: 0;
+}
+
+.rsys_asettings_sidebar_section {
+    padding: 6px 10px;
+    border-bottom: 1px solid #383838;
+}
+
+.rsys_asettings_sidebar_section:last-of-type {
+    border-bottom: none !important;
+}
+
+.rsys_asettings_sidebar_btn {
+    padding: 6px 10px;
+    font-size: 15px;
+    color: #dedede;
+    border-radius: 5px;
+    margin: 4px 0;
+    cursor: pointer;
+}
+
+.rsys_asettings_sidebar_btn:hover {
+    background: #232629;
+}
+
+.rsys_asettings_sidebar_btn_active {
+    background: #2c2f33 !important;
+}
+
+.rsys_asettings_sidebar_btn_danger {
+    color: #fd6969;
+}
+
+.rsys_asettings_sidebar_btn_danger:hover {
+    background: #ff7e7e1a;
+}
+
+.rsys_asettings_sidebar_btn_active.rsys_asettings_sidebar_btn_danger {
+    background: #e84242 !important;
+    color: white;
+}

@@ -8,10 +8,12 @@ export default class RaptorDataProvider<T> extends RaptorEventDispaptcher<T> imp
 
     constructor(conn: RaptorConnection, info: RaptorInfoProvider) {
         super();
+        this.conn = conn;
         this.info = info;
         this.endpoint = new RaptorDispatcherOpcode(conn.rpcDispatcherDataProvider.CreateSubscription(info.id));
     }
 
+    protected conn: RaptorConnection;
     protected info: RaptorInfoProvider;
     protected endpoint: RaptorDispatcherOpcode;
 

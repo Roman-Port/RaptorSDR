@@ -15,10 +15,6 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider<T
         this.endpointAck = this.endpoint.CreateSubscription("ACK");
         this.endpointSet = this.endpoint.CreateSubscription("SET_VALUE");
         this.endpointSet.OnMessage.Bind((payload: any) => {
-            //Check if we're the sender
-            //if (payload["sender_id"] != null && payload["sender_id"] == conn.sessionId) { return; }
-
-            //Process
             var value = payload["value"] as T;
             this.value = value;
             this.OnChanged.Fire(value);
@@ -42,10 +38,6 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider<T
         //Generate "token" that's used to get ACKs
         var token = RaptorUtil.GenerateRandomString(8);
 
-        //Set locally
-        //this.value = value;
-        //this.OnChanged.Fire(value);
-
         //Create promise
         var p = new Promise<any>((resolve, reject) => {
             this.endpointAck.OnMessage.Bind((message: any) => {
@@ -67,6 +59,11 @@ export default class RaptorPrimitiveDataProvider<T> extends RaptorDataProvider<T
         });
 
         return p;
+    }
+
+
+    SetAllowed(): boolean {
+        return !this.info.info["read_only"] && this.conn.CheckSystemScopeMask(this.info.info["scope_system"]) && this.conn.CheckPluginScopes(this.info.info["scope_plugin"]);
     }
 
     OnChanged: RaptorEventDispatcher<T>;

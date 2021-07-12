@@ -1,16 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\sdk",
+    "\\sdk\\ui",
+    "\\sdk\\ui\\setting",
+    "\\sdk\\ui\\setting\\components",
     "\\src",
     "\\src\\framework",
     "\\src\\framework\\ui",
-    "\\src\\framework\\ui\\core",
-    "\\src\\framework\\ui\\core\\sidebar",
-    "\\src\\framework\\ui\\core\\xwindow",
-    "\\src\\framework\\ui\\core\\xwindow\\mounts",
-    "\\src\\framework\\ui\\filebrowser",
-    "\\src\\framework\\web"
+    "\\src\\framework\\ui\\advancedsettings",
+    "\\src\\framework\\ui\\advancedsettings\\buttons"
   ],
-  "SelectedNode": "\\src\\framework\\ui\\filebrowser\\RaptorFileBrowser.ts",
+  "SelectedNode": "\\sdk\\ui\\setting\\RaptorSettingsRegionBuilder.ts",
   "PreviewInSolutionExplorer": false
 }

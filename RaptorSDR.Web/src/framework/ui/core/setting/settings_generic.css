@@ -5,6 +5,18 @@
     margin-top: 5px;
 }
 
+.rsys_settings_goption_setting_readonly {
+    cursor: no-drop;
+}
+
+.rsys_settings_goption_setting_readonly:hover {
+    opacity: 0.7;
+}
+
+.rsys_settings_goption_setting_readonly * {
+    pointer-events: none !important;
+}
+
 .rsys_settings_goption_title {
     width: 100px;
     flex-shrink: 0;
@@ -57,4 +69,14 @@ select.rsys_settings_goption_input {
     text-align: center;
     line-height: 28px;
     cursor: pointer;
+}
+
+.rsys_settings_goption_range {
+    padding: 0;
+}
+
+.rsys_settings_goption_range_helper {
+    color: #c3c3c3;
+    font-size: 15px;
+    margin-left: 5px;
 }

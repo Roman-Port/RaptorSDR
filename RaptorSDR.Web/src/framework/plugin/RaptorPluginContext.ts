@@ -11,12 +11,15 @@ import RaptorPluginRegisteredWindow from './RaptorPluginRegisteredWindow';
 import RaptorConnection from '../RaptorConnection';
 import IRaptorPluginAudio from '../../../sdk/plugin/components/IRaptorPluginAudio';
 import IRaptorWindowClassInfo from '../../../sdk/plugin/window/IRaptorWindowClassInfo';
+import RaptorDispatcherOpcode from '../../../sdk/web/dispatchers/RaptorDispatcherOpcode';
+import IRaptorEndpoint from '../../../sdk/web/IRaptorEndpoint';
 
 export default class RaptorPluginContext implements IRaptorPluginContext {
 
     constructor(info: RaptorInfoPlugin, conn: RaptorConnection) {
         this.info = info;
         this.conn = conn;
+        this.pluginRpc = new RaptorDispatcherOpcode(conn.rpcDispatcherPlugin.CreateSubscription(info.id));
         this.packages = [];
         this.scripts = [];
     }
@@ -46,6 +49,7 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
     conn: RaptorConnection;
     private packages: RaptorPluginPackage[];
     private scripts: IRaptorPlugin[];
+    private pluginRpc: RaptorDispatcherOpcode;
 
     ShowMenu(menu: RaptorMenuBuilder): void {
         throw new Error("Method not implemented.");
@@ -81,6 +85,10 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
 
     RegisterComponentAudio(audio: IRaptorPluginAudio): void {
         this.conn.RegisterComponentAudio(this, audio);
+    }
+
+    CreatePluginRpcEndpoint(endpoint: string): IRaptorEndpoint {
+        return this.pluginRpc.CreateSubscription(endpoint);
     }
 
 }

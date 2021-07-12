@@ -37,6 +37,8 @@ import RaptorOpenFileBrowser from "./ui/filebrowser/RaptorOpenFileBrowser";
 import IRaptorSettingsRegion from "../../sdk/ui/setting/IRaptorSettingsRegion";
 import RaptorSettingsPage from "./ui/core/setting/RaptorSettingsPage";
 import { RaptorSettingsTab } from "../../sdk/ui/setting/RaptorSettingsTab";
+import AuthError from "./errors/AuthError";
+import IRaptorUserInfo from "./web/IRaptorUserInfo";
 
 export default class RaptorConnection implements IRaptorConnection {
 
@@ -77,7 +79,8 @@ export default class RaptorConnection implements IRaptorConnection {
 
     private volume: number = 1;
 
-    token: string;
+    account: IRaptorUserInfo;
+    token: string = localStorage.getItem("ACCESS_TOKEN");
     sessionId: string;
     Radio: IRaptorRadio;
     VFO: IRaptorVFO;
@@ -107,9 +110,9 @@ export default class RaptorConnection implements IRaptorConnection {
         return await this.infoTask;
     }
 
-    async Init(token: string) {
+    async Init(account: IRaptorUserInfo) {
         //Set
-        this.token = token;
+        this.account = account;
 
         //Get the info
         var info = await this.GetInfo();
@@ -307,6 +310,81 @@ export default class RaptorConnection implements IRaptorConnection {
         var start = Date.now();
         await this.rpcPing.SendMessageGetResponse({});
         return Date.now() - start;
+    }
+
+    AuthRegister(username: string, password: string): Promise<IRaptorUserInfo> {
+        return this.AuthUserCommand(username, password, "register");
+    }
+
+    AuthLogin(username: string, password: string): Promise<IRaptorUserInfo> {
+        return this.AuthUserCommand(username, password, "login");
+    }
+
+    async AuthLogout(everywhere: boolean): Promise<void> {
+        //Clear the stored token
+        localStorage.removeItem("ACCESS_TOKEN");
+
+        //If we requested to logout everywhere, send a command to invaidate the token
+        if (everywhere) {
+            //Create body
+            var body = {
+                "access_token": this.token
+            };
+
+            //Send
+            await this.GetHttpRequest("/accounts/logout", "POST").SetBody(JSON.stringify(body)).AsJSON<any>();
+        }
+
+        //Reload
+        window.location.reload();
+    }
+
+    AuthGetInfo(): Promise<IRaptorUserInfo> {
+        //Create body
+        var body = {
+            "access_token": this.token
+        };
+
+        //Send
+        return this.GetHttpRequest("/accounts/info", "POST").SetBody(JSON.stringify(body)).AsJSON<IRaptorUserInfo>();
+    }
+
+    private async AuthUserCommand(username: string, password: string, command: string): Promise<IRaptorUserInfo> {
+        //Create body
+        var body = {
+            "username": username,
+            "password": password
+        };
+
+        //Send
+        var response = await this.GetHttpRequest("/accounts/" + command, "POST").SetBody(JSON.stringify(body)).AsJSON<any>();
+
+        //Check status
+        if (!response["ok"]) {
+            throw new AuthError(response["status"]);
+        }
+
+        //Set access token
+        localStorage.setItem("ACCESS_TOKEN", response["access_token"]);
+        this.token = response["access_token"];
+
+        //Return user info
+        return response["info"] as IRaptorUserInfo;
+    }
+
+    CheckSystemScopeMask(mask: number): boolean {
+        return this.account.admin || ((this.account.scope_system & mask) == mask);
+    }
+
+    CheckPluginScope(scope: string): boolean {
+        return this.account.admin || this.account.scope_plugin.includes(scope);
+    }
+
+    CheckPluginScopes(scope: string[]): boolean {
+        var ok = true;
+        for (var i = 0; i < scope.length; i++)
+            ok = ok && this.CheckPluginScope(scope[i]);
+        return ok;
     }
 
 }

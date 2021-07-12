@@ -1,5 +1,7 @@
 import RaptorUiUtil from "../../../../sdk/util/RaptorUiUtil";
+import AuthError from "../../errors/AuthError";
 import RaptorConnection from "../../RaptorConnection";
+import IRaptorUserInfo from "../../web/IRaptorUserInfo";
 
 require("./login.css");
 
@@ -27,40 +29,28 @@ export default class RaptorLoginPage {
 
         //Make login callback
         var loginCallback = async () => {
-            //Create request body
-            var body = {
-                "auth_type": "PASSWORD",
-                "username": this.usernameBox.value,
-                "password": this.passwordBox.value
-            };
-
             //Set to loading and reset
             this.loginError.innerHTML = "";
             this.loginBtn.classList.add("loading_btn");
 
-            //Send
-            var response = await this.conn.GetHttpRequest("/accounts/login", "POST")
-                .SetBody(JSON.stringify(body))
-                .AsJSON<any>();
+            //Send request
+            try {
+                this.callback(await this.conn.AuthLogin(this.usernameBox.value, this.passwordBox.value));
+            } catch (err: any) {
+                //Assume this is an auth error and get the message
+                var error = "";
+                switch ((err as AuthError).code) {
+                    case "NO_PERMISSIONS": error = "Account exists, but currently has no permissions"; break;
+                    case "INVALID_CREDENTIALS": error = "Invalid username or password"; break;
+                    default: error = "Unknown error"; break;
+                }
 
-            //Unset to loading
-            this.loginBtn.classList.remove("loading_btn");
-
-            //Check for errors
-            var error = "";
-            switch (response["status"]) {
-                case "OK":
-                    this.callback(response["session_token"]);
-                    this.body.classList.remove("rsys_login_box_enabled");
-                    localStorage.setItem("RAPTOR_REFRESH_TOKEN", response["refresh_token"]);
-                    return;
-                case "NO_PERMISSIONS": error = "Account exists, but currently has no permissions"; break;
-                case "INVALID_CREDENTIALS": error = "Invalid username or password"; break;
-                default: error = "Unknown error"; break;
+                //Set
+                this.loginError.innerText = error;
+            } finally {
+                //Unset loading
+                this.loginBtn.classList.remove("loading_btn");
             }
-
-            //Set
-            this.loginError.innerText = error;
         };
 
         //Bind
@@ -80,7 +70,7 @@ export default class RaptorLoginPage {
     }
 
     private conn: RaptorConnection;
-    private callback: (token: string) => void;
+    private callback: (info: IRaptorUserInfo) => void;
 
     private cover: HTMLElement;
     private body: HTMLElement;
@@ -97,7 +87,7 @@ export default class RaptorLoginPage {
         }
     }
 
-    async PromptLogin(): Promise<string> {
+    async PromptLogin(): Promise<IRaptorUserInfo> {
         this.body.classList.add("rsys_login_box_enabled");
         return new Promise((resolve) => {
             this.callback = resolve;

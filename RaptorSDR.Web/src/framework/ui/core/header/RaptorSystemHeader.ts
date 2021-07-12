@@ -8,6 +8,7 @@ import RaptorMenuUtil from "../../../../../sdk/util/RaptorMenuUtil";
 import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 import IRaptorPrimitiveDataProvider from "../../../../../sdk/web/providers/IRaptorPrimitiveDataProvider";
 import RaptorConnection from "../../../RaptorConnection";
+import AdvancedSettingsDialog from "../../advancedsettings/AdvancedSettingsDialog";
 import RaptorSystemTuner from "./freq/RaptorSystemTuner";
 import SystemHeaderStatusIcon from "./status/SystemHeaderStatusIcon";
 import SystemHeaderStatusIconNetwork from "./status/SystemHeaderStatusIconNetwork";
@@ -49,7 +50,7 @@ export default class RaptorSystemHeader {
             .Build(this.sideView);
         new SystemHeaderButtonBuilder("rsys_header_btn_settings")
             .AddOnClick(() => {
-                //todo
+                new AdvancedSettingsDialog(this.conn).Show();
             })
             .Build(this.sideView);
         new SystemHeaderButtonBuilder("rsys_header_btn_sound")
