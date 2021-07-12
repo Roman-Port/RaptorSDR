@@ -56,7 +56,7 @@ namespace RomanPort.Recorder
         public long SamplesWaiting { get => processingBuffer.Used; }
         public long SamplesWritten { get => samplesRecorded; }
         public long BytesWritten { get => SamplesWritten * sizeof(float); }
-        public long SecondsWritten { get => SamplesWritten / channels / SampleRate; }
+        public long SecondsWritten { get => SamplesWritten / channels / (SampleRate == 0 ? 1 : SampleRate); }
         public SampleFormat OutputSampleFormat
         {
             get
@@ -114,7 +114,7 @@ namespace RomanPort.Recorder
             string outputFile;
 
             //Create the rewind buffer
-            RecorderCircularBuffer<float> rewindBuffer = new RecorderCircularBuffer<float>(settings.rewindBufferSeconds * sampleRate * channels);
+            RecorderRewindBuffer<float> rewindBuffer = new RecorderRewindBuffer<float>(settings.rewindBufferSeconds * sampleRate * channels);
 
             //Allocate the file handle that'll be used for writing
             FileStream file = null;
@@ -142,7 +142,7 @@ namespace RomanPort.Recorder
                     //Find a temporary filename to use
                     int tempId = 0;
                     do
-                        fileName = $"TEMP_DATA_{tempId++}";
+                        fileName = $"TEMP_DATA_{tempId++}.wav";
                     while (File.Exists(fileName));
 
                     //Open file
@@ -181,8 +181,10 @@ namespace RomanPort.Recorder
 
                     //Write headers, close file, do general cleanup
                     fileWriter.FinalizeFile();
+                    file.Flush();
                     file.Close();
                     file.Dispose();
+                    file = null;
 
                     //Perform action
                     if(outputFile != null)
@@ -207,7 +209,7 @@ namespace RomanPort.Recorder
                 if(sampleRateStale)
                 {
                     rewindBuffer.Dispose();
-                    rewindBuffer = new RecorderCircularBuffer<float>(settings.rewindBufferSeconds * sampleRate * channels);
+                    rewindBuffer = new RecorderRewindBuffer<float>(settings.rewindBufferSeconds * sampleRate * channels);
                 }
 
                 //Wait for samples
