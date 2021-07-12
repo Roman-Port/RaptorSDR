@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace RomanPort.ViewSpectrum.Spectrums
 {
-    public unsafe abstract class BaseRegisteredSpectrum<T> : IRegisteredSpectrum where T : unmanaged
+    public unsafe abstract class BaseRegisteredSpectrum<T> : IInternalRegisteredSpectrum where T : unmanaged
     {
         public BaseRegisteredSpectrum(IRaptorControl control, RaptorNamespace id, SpectrumSettings settings)
         {
@@ -20,12 +20,17 @@ namespace RomanPort.ViewSpectrum.Spectrums
             this.id = id;
             this.settings = settings;
 
+            //Create stream
+            fftStream = new FftStreamBuffer<T>(settings.fftSize);
+            fftStream.OnFrameExported += FftStream_OnFrameExported;
+
             //Create buffers
-            fftStream = new FftStreamBuffer<T>(settings.fftSize, Math.Max(control.BufferSize, settings.fftSize) * 2);
-            streamBuffer = UnsafeBuffer.Create(settings.fftSize, out streamBufferPtr);
+            streamQueueBuffer = UnsafeBuffer.Create(settings.fftSize, out streamQueuePtr);
+            streamProcessingBuffer = UnsafeBuffer.Create(settings.fftSize, out streamProcessingPtr);
 
             //Register the new stream
             stream = control.RegisterWebStream<RegisteredSpectrumClient>(id);
+            stream.OnClientConnected += Stream_OnClientConnected;
 
             //Create and start worker thread
             worker = new Thread(WorkerThread);
@@ -41,13 +46,16 @@ namespace RomanPort.ViewSpectrum.Spectrums
 
         private IRaptorWebStreamServer<RegisteredSpectrumClient> stream;
         
-        private bool suspended = true;
         private Thread worker;
         private int sampleRate;
 
         private FftStreamBuffer<T> fftStream;
-        private UnsafeBuffer streamBuffer;
-        private T* streamBufferPtr;
+        private AutoResetEvent fftReady = new AutoResetEvent(false);
+
+        private UnsafeBuffer streamQueueBuffer;
+        private T* streamQueuePtr;
+        private UnsafeBuffer streamProcessingBuffer;
+        private T* streamProcessingPtr;
 
         public RaptorNamespace Id { get => id; }
         public SpectrumSettings Settings { get => settings; }
@@ -64,7 +72,6 @@ namespace RomanPort.ViewSpectrum.Spectrums
 
         public void AddSamples(T* ptr, int count)
         {
-            if (suspended) { return; }
             fftStream.Write(ptr, count);
         }
 
@@ -78,40 +85,37 @@ namespace RomanPort.ViewSpectrum.Spectrums
             SampleRate = (int)sampleRate;
         }
 
+        private void Stream_OnClientConnected(RegisteredSpectrumClient stream)
+        {
+            stream.Initialize(this);
+        }
+
+        private void FftStream_OnFrameExported(T* ptr, int count)
+        {
+            lock(streamQueueBuffer)
+            {
+                Utils.Memcpy(streamQueuePtr, ptr, count * sizeof(T));
+                fftReady.Set();
+            }
+        }
+
         private void WorkerThread()
         {
             while(true)
             {
-                //Check if we need to suspend
-                if (!stream.HasClients)
-                {
-                    suspended = true;
-                    Thread.Sleep(100);
-                    continue;
-                }
-                suspended = false;
+                //Wait for an item in the queue
+                fftReady.WaitOne();
 
-                //Compute frame
-                ProcessFrame();
+                //Transfer to the processing buffer
+                lock (streamQueueBuffer)
+                    Utils.Memcpy(streamProcessingPtr, streamQueuePtr, settings.fftSize * sizeof(T));
 
-                //Sleep
-                Thread.Sleep(1000 / settings.framesPerSec);
+                //Process frame
+                float* power = ProcessPower(streamProcessingPtr, out int count);
+
+                //Dispatch
+                stream.ForEachClient((RegisteredSpectrumClient client) => client.NewFftFrameProcessed(power, count));
             }
-        }
-
-        private void ProcessFrame()
-        {
-            //Read from the stream
-            fftStream.Read(streamBufferPtr);
-
-            //Process
-            float* power = ProcessPower(streamBufferPtr, out int count);
-
-            //Dispatch to clients
-            stream.ForEachClient((RegisteredSpectrumClient client) =>
-            {
-                client.OnFftFrame(power, count, IsHalf ? sampleRate / 2 : sampleRate);
-            });
         }
 
         protected abstract float* ProcessPower(T* samples, out int count);

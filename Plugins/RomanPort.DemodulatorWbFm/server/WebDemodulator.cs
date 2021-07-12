@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using RaptorSDR.Server.Common;
+using RaptorSDR.Server.Common.DataProviders;
 using RaptorSDR.Server.Common.PluginComponents;
 using RomanPort.LibSDR.Demodulators.Analog.Broadcast;
 
@@ -17,14 +18,18 @@ namespace RomanPort.DemodulatorWbFm
             OnRdsDetected += (bool detected) => OnWebRdsDetected?.Invoke(this, detected);
             OnRdsFrameEmitted += (ulong frame) => OnWebRdsFrame?.Invoke(this, frame);
             OnStereoDetected += (bool detected) => OnWebStereoDetected?.Invoke(this, detected);
+
+            dpStereoEnabled = new RaptorPrimitiveDataProvider<bool>(this, "StereoEnabled")
+                .BindOnChanging((bool value, IRaptorSession session) => StereoEnabled = value);
+            dpStereoEnabled.Value = StereoEnabled;
         }
         
         public string DisplayName => "Wideband FM";
         public string DisplayNameShort => "WFM";
-
         public RaptorNamespace Id => ctx.Id.Then(id);
-
         public IRaptorControl Control => ctx.Control;
+
+        private RaptorPrimitiveDataProvider<bool> dpStereoEnabled;
 
         private IRaptorContext ctx;
         private string id;

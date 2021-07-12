@@ -1,5 +1,6 @@
 import IRaptorPlugin from 'RaptorSdk/plugin/IRaptorPlugin';
 import IRaptorPluginContext from 'RaptorSdk/plugin/IRaptorPluginContext';
+import IRaptorWindowContext from '../sdk/ui/core/IRaptorWindowContext';
 import { RaptorWindowMounting } from '../sdk/ui/core/RaptorWindowMounting';
 import RaptorSize from '../sdk/ui/RaptorSize';
 import RdsWindow from './RdsWindow';
@@ -17,7 +18,7 @@ export default class ViewRdsBarPlugin implements IRaptorPlugin {
         var win = this.ctx.RegisterWindowClass({
             id: "RomanPort.RdsBarPlugin.RdsBar",
             displayName: "RDS",
-            createInstance: (info: any, persist: any) => new RdsWindow(this.ctx.conn, info),
+            createInstance: (ctx: IRaptorWindowContext) => new RdsWindow(ctx),
             hideHeader: true,
             sizeDefault: new RaptorSize(400, 40),
             sizeMax: new RaptorSize(9999, 40),

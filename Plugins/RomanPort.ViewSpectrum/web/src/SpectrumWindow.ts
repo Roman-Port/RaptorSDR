@@ -48,6 +48,9 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
             SetValue: () => {
                 throw new Error("Cannot set sample rate.");
             },
+            SetAllowed: () => {
+                return false;
+            },
             OnChanged: new RaptorEventDispaptcher<number>()
         }
         this.SampleRateZoomed = {
@@ -56,6 +59,9 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
             },
             SetValue: () => {
                 throw new Error("Cannot set sample rate.");
+            },
+            SetAllowed: () => {
+                return false;
             },
             OnChanged: new RaptorEventDispaptcher<number>()
         }
@@ -70,7 +76,7 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
             .AddOptionRange("Attack", new SpectrumDataProviderScaler(this.SettingAttack, 100), 0, 100)
             .AddOptionRange("Decay", new SpectrumDataProviderScaler(this.SettingDecay, 100), 0, 100)
             .Build();
-        ctx.RegisterSettingsRegionSidebar(settings, RaptorSettingsTab.GENRAL);
+        ctx.RegisterSettingsRegionSidebar(settings, RaptorSettingsTab.EXTRA);
     }
 
     conn: IRaptorConnection;

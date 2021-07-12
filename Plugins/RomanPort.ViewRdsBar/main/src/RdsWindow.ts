@@ -1,5 +1,6 @@
 import IRaptorConnection from "RaptorSdk/IRaptorConnection";
 import IRaptorWindow from "../sdk/ui/core/IRaptorWindow";
+import IRaptorWindowContext from "../sdk/ui/core/IRaptorWindowContext";
 import RaptorSize from "../sdk/ui/RaptorSize";
 import IRaptorPrimitiveDataProvider from "../sdk/web/providers/IRaptorPrimitiveDataProvider";
 import PiCodeDb from "./PiCodeDb";
@@ -9,9 +10,9 @@ require("./style.css");
 
 export default class RdsWindow implements IRaptorWindow {
 
-    constructor(conn: IRaptorConnection, info: any) {
-        this.conn = conn;
-        this.info = info;
+    constructor(ctx: IRaptorWindowContext) {
+        this.conn = ctx.conn;
+        this.info = ctx.info;
         this.db = new PiCodeDb();
     }
 

@@ -3,11 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.6.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomanPort.LibSDR", "..\..\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj", "{AA47CEB6-7FDD-43CB-B8F3-3D9B2F344E25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RomanPort.LibSDR", "..\..\lib\LibSDR\RomanPort.LibSDR\RomanPort.LibSDR.csproj", "{AA47CEB6-7FDD-43CB-B8F3-3D9B2F344E25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaptorSDR.Server.Common", "..\..\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj", "{97372CC3-6C11-4B97-A0D4-233B663B09A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaptorSDR.Server.Common", "..\..\RaptorSDR.Server\RaptorSDR.Server.Common\RaptorSDR.Server.Common.csproj", "{97372CC3-6C11-4B97-A0D4-233B663B09A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomanPort.DemodulatorWbFm", "server\RomanPort.DemodulatorWbFm.csproj", "{5637F856-E4D8-49E0-B2D6-2EFBD394E5C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RomanPort.DemodulatorWbFm", "server\RomanPort.DemodulatorWbFm.csproj", "{5637F856-E4D8-49E0-B2D6-2EFBD394E5C3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{E57D2C09-0182-416D-8247-B6A418411081}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RomanPort.ViewSpectrum.API", "..\RomanPort.ViewSpectrum\RomanPort.ViewSpectrum.API\RomanPort.ViewSpectrum.API.csproj", "{4787A534-8895-4205-9B83-83C9FF4517C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,9 +21,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{AA47CEB6-7FDD-43CB-B8F3-3D9B2F344E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -58,5 +59,26 @@ Global
 		{5637F856-E4D8-49E0-B2D6-2EFBD394E5C3}.Release|x64.Build.0 = Release|Any CPU
 		{5637F856-E4D8-49E0-B2D6-2EFBD394E5C3}.Release|x86.ActiveCfg = Release|Any CPU
 		{5637F856-E4D8-49E0-B2D6-2EFBD394E5C3}.Release|x86.Build.0 = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|x64.Build.0 = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Debug|x86.Build.0 = Debug|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|x64.ActiveCfg = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|x64.Build.0 = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|x86.ActiveCfg = Release|Any CPU
+		{4787A534-8895-4205-9B83-83C9FF4517C1}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4787A534-8895-4205-9B83-83C9FF4517C1} = {E57D2C09-0182-416D-8247-B6A418411081}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D1090B72-2B60-45B8-AB66-3BCB7BC9231C}
 	EndGlobalSection
 EndGlobal

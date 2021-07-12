@@ -3,10 +3,13 @@ using Newtonsoft.Json.Linq;
 using RaptorSDR.Server.Common.WebStream;
 using RomanPort.LibSDR.Components;
 using RomanPort.LibSDR.Components.FFTX;
+using RomanPort.ViewSpectrum.API;
+using RomanPort.ViewSpectrum.Spectrums;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Timers;
 
 namespace RomanPort.ViewSpectrum
 {
@@ -18,11 +21,12 @@ namespace RomanPort.ViewSpectrum
 
         private byte PROTOCOL_VERSION = 1;
 
-        private bool hasInitialized;
+        private IInternalRegisteredSpectrum spectrum;
         private bool useHd; //When this is true, we use shorts instead of bytes when sending samples
 
         private int settingOutputSize;
         private ushort settingToken = 0;
+        private int settingFps = 30;
         private float settingAttack = 0.4f;
         private float settingDecay = 0.4f;
         private float settingSampleOffset = 20;
@@ -33,11 +37,20 @@ namespace RomanPort.ViewSpectrum
         private int outputSize; //thread safe, not changed until we're able to
         private int framesSinceLastFull;
 
+        private object rawPowerLock = new object();
+        private UnsafeBuffer rawPowerBuffer;
+        private float* rawPowerPtr;
+        private int rawPowerSize;
+
         private UnsafeBuffer powerBuffer;
         private float* powerBufferPtr;
+
         private UnsafeBuffer resizedBuffer;
         private float* resizedBufferPtr;
+
         private byte[] outputBuffer;
+
+        private Timer updateTimer;
 
         private const int PACKET_HEADER_LEN = 8;
 
@@ -64,26 +77,6 @@ namespace RomanPort.ViewSpectrum
             settingToken = (ushort)(payload.TryGetValue("token", out JToken token) ? token : 0);
         }
 
-        private static void UpdateSetting(JToken input, float min, float max, ref float output)
-        {
-            //Validate
-            if (input == null || (input.Type != JTokenType.Float && input.Type != JTokenType.Integer))
-                return;
-
-            //Constrain and apply
-            output = Math.Max(min, Math.Min(max, (float)input));
-        }
-
-        private static void UpdateSetting(JToken input, int min, int max, ref int output)
-        {
-            //Validate
-            if (input == null || (input.Type != JTokenType.Float && input.Type != JTokenType.Integer))
-                return;
-
-            //Constrain and apply
-            output = Math.Max(min, Math.Min(max, (int)input));
-        }
-
         public override void HandleOpen()
         {
             //Read if this should be HD or not
@@ -95,27 +88,26 @@ namespace RomanPort.ViewSpectrum
 
         }
 
-        public void OnFftFrame(float* power, int size, int sampleRate)
+        public void Initialize(IInternalRegisteredSpectrum spectrum)
         {
-            //If we haven't initialized, do that
-            if(!hasInitialized)
-            {
-                //Create new buffer
-                powerBuffer = UnsafeBuffer.Create(size, out powerBufferPtr);
+            //Configure
+            this.spectrum = spectrum;
 
-                //Copy current samples to it so it isn't 0
-                Utils.Memcpy(powerBufferPtr, power, size * sizeof(float));
+            //Start timer
+            updateTimer = new Timer(1000.0 / settingFps);
+            updateTimer.AutoReset = true;
+            updateTimer.Elapsed += (object sender, ElapsedEventArgs e) => ProcessFrame();
+            updateTimer.Start();
+        }
 
-                //Update state
-                hasInitialized = true;
-            }
-
+        private void ProcessFrame()
+        {
             //If the requested buffer size is 0, stop
             if (settingOutputSize == 0)
                 return;
 
             //If the output buffer size changed, update it 
-            if(settingOutputSize != outputSize)
+            if (settingOutputSize != outputSize)
             {
                 //Clear old buffers
                 resizedBuffer?.Dispose();
@@ -124,28 +116,61 @@ namespace RomanPort.ViewSpectrum
                 outputSize = settingOutputSize;
 
                 //Create new bufers
+                powerBuffer = UnsafeBuffer.Create(outputSize, out powerBufferPtr);
                 resizedBuffer = UnsafeBuffer.Create(outputSize, out resizedBufferPtr);
                 outputBuffer = new byte[PACKET_HEADER_LEN + (outputSize * (useHd ? 2 : 1))];
             }
 
-            //Apply smoothening
-            FFTUtil.ApplySmoothening(powerBufferPtr, power, size, settingAttack, settingDecay);
+            //Determine interpolation
+            float interpolation = Math.Min(1, (float)spectrum.SampleRate / (spectrum.Settings.fftSize * settingFps) / (spectrum.IsHalf ? 2 : 1));
 
-            //Apply zoom
-            int zoomSize = ProcessZoom(size, out float* zoomedPtr);
+            //Validate
+            if (rawPowerSize == 0)
+                return;
+
+            //Apply transformations
+            lock (rawPowerLock)
+            {
+                //Every once in a while send a frame that isn't zoomed for the "unzoomed" thumbnail
+                if (framesSinceLastFull == 0 || ++framesSinceLastFull == 30)
+                {
+                    FFTUtil.ResizePower(rawPowerPtr, resizedBufferPtr, rawPowerSize, outputSize);
+                    EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_FULL, resizedBufferPtr, spectrum.IsHalf ? spectrum.SampleRate / 2 : spectrum.SampleRate);
+                    framesSinceLastFull = 1;
+                }
+
+                //Apply zoom
+                int zoomSize = ProcessZoom(rawPowerPtr, rawPowerSize, out float* zoomedPtr);
+
+                //Resize to output
+                FFTUtil.ResizePower(zoomedPtr, resizedBufferPtr, zoomSize, outputSize);
+            }
+
+            //Apply smoothening
+            FFTUtil.ApplySmoothening(powerBufferPtr, resizedBufferPtr, outputSize, settingAttack * interpolation, settingDecay * interpolation);
 
             //Send frame
-            EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_ZOOM, zoomedPtr, zoomSize, sampleRate);
+            EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_ZOOM, powerBufferPtr, spectrum.IsHalf ? spectrum.SampleRate / 2 : spectrum.SampleRate);            
+        }
 
-            //Every once in a while send a frame that isn't zoomed for the "unzoomed" thumbnail
-            if(framesSinceLastFull == 0 || ++framesSinceLastFull == 30)
+        public void NewFftFrameProcessed(float* power, int size)
+        {
+            lock(rawPowerLock)
             {
-                EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_FULL, powerBufferPtr, size, sampleRate);
-                framesSinceLastFull = 1;
+                //If it is a different size, reallocate
+                if (size != rawPowerSize || rawPowerBuffer == null)
+                {
+                    rawPowerBuffer?.Dispose();
+                    rawPowerBuffer = UnsafeBuffer.Create(size, out rawPowerPtr);
+                    rawPowerSize = size;
+                }
+
+                //Copy
+                Utils.Memcpy(rawPowerPtr, power, size * sizeof(float));
             }
         }
 
-        private int ProcessZoom(int inputSize, out float* ptr)
+        private int ProcessZoom(float* inputPtr, int inputSize, out float* ptr)
         {
             //Process the output size
             int outputSize = Math.Min(inputSize, Math.Max(2, (int)(inputSize * settingZoom)));
@@ -157,23 +182,20 @@ namespace RomanPort.ViewSpectrum
             offset = Math.Max(0, Math.Min(inputSize - outputSize, offset));
 
             //Create the pointer by taking offsetting the bit by the difference
-            ptr = powerBufferPtr + offset;
+            ptr = inputPtr + offset;
 
             //Do a little verification
-            if (ptr < powerBufferPtr || (ptr + outputSize) > (powerBufferPtr + inputSize) || outputSize > inputSize)
+            if (ptr < inputPtr || (ptr + outputSize) > (inputPtr + inputSize) || outputSize > inputSize)
                 throw new Exception("Processed zoom is out of range. This would've caused unmanaged memory corruption. This is a calculation bug.");
 
             return outputSize;
         }
 
-        private void EncodeSendFrame(SpectrumStreamOpcode opcode, float* ptr, int count, int sampleRate)
+        private void EncodeSendFrame(SpectrumStreamOpcode opcode, float* ptr, int sampleRate)
         {
-            //Resize to output
-            FFTUtil.ResizePower(ptr, resizedBufferPtr, count, outputSize);
-
             //Bring output frame to range
             for (int i = 0; i < outputSize; i++)
-                resizedBufferPtr[i] = (-resizedBufferPtr[i] - settingSampleOffset) / settingSampleRange;
+                resizedBufferPtr[i] = (-ptr[i] - settingSampleOffset) / settingSampleRange;
 
             //Clamp output frame to 0-1
             for (int i = 0; i < outputSize; i++)
@@ -231,5 +253,29 @@ namespace RomanPort.ViewSpectrum
                     outputBuffer[offset + i] = ptr[size - 1 - i];
             }
         }
+
+        #region Utils
+
+        private static void UpdateSetting(JToken input, float min, float max, ref float output)
+        {
+            //Validate
+            if (input == null || (input.Type != JTokenType.Float && input.Type != JTokenType.Integer))
+                return;
+
+            //Constrain and apply
+            output = Math.Max(min, Math.Min(max, (float)input));
+        }
+
+        private static void UpdateSetting(JToken input, int min, int max, ref int output)
+        {
+            //Validate
+            if (input == null || (input.Type != JTokenType.Float && input.Type != JTokenType.Integer))
+                return;
+
+            //Constrain and apply
+            output = Math.Max(min, Math.Min(max, (int)input));
+        }
+
+        #endregion Utils
     }
 }

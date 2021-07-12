@@ -19,7 +19,7 @@ namespace RomanPort.ViewSpectrum.Spectrums
 
             //Create FFT
             fft = new KissFFTComplex(settings.fftSize, false);
-            window = new FFTWindow(settings.fftSize);
+            window = new FFTWindow(settings.fftSize, LibSDR.Components.Filters.WindowType.Youssef);
         }
 
         private UnsafeBuffer powerBuffer;

@@ -23,6 +23,10 @@ export default class SpectrumDataProviderScaler implements IRaptorConfigurable<n
         return this.baseProvider.SetValue(value / this.scale);
     }
 
+    SetAllowed(): boolean {
+        return true;
+    }
+
     OnChanged: RaptorEventDispatcher<number> = new RaptorEventDispatcher();
 
 }

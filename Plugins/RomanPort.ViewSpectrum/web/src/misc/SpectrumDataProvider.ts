@@ -19,6 +19,10 @@ export default class SpectrumDataProvider implements IRaptorConfigurable<number>
         this.host.sock.UpdateWebValue(this.sockKey, this.GetValue());
     }
 
+    SetAllowed(): boolean {
+        return true;
+    }
+
     private host: ISpectrumDataProviderHost;
     private persistKey: string;
     private sockKey: string;
