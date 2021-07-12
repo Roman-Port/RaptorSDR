@@ -16,3 +16,9 @@
 [submodule "Plugins/RomanPort.ViewRdsBar/main/sdk"]
 	path = Plugins/RomanPort.ViewRdsBar/main/sdk
 	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "Plugins/Plugins/RomanPort.Recorder/web/sdk"]
+	path = Plugins/Plugins/RomanPort.Recorder/web/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
+[submodule "Plugins/RomanPort.Recorder/web/sdk"]
+	path = Plugins/RomanPort.Recorder/web/sdk
+	url = https://github.com/Roman-Port/RaptorSDR.Web.Common
