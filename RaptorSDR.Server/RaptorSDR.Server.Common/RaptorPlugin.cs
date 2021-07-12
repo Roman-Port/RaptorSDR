@@ -20,6 +20,13 @@ namespace RaptorSDR.Server.Common
 
         public abstract string DeveloperName { get; }
         public abstract string PluginName { get; }
+        public abstract Guid PluginUuid { get; }
+        public abstract ushort VersionMajor { get; }
+        public abstract ushort VersionMinor { get; }
+        public abstract ushort VersionBuild { get; }
+        public abstract uint SdkVersion { get; }
+
+        public ulong VersionCode { get => ((ulong)VersionMajor << 32) | ((ulong)VersionMinor << 16) | VersionBuild; }
 
         private IRaptorControl control;
         private RaptorDispatcherOpcode dispatcher;
