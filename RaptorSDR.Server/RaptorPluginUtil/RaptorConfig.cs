@@ -14,10 +14,21 @@ namespace RaptorPluginUtil
         public int version_major;
         public int version_minor;
         public int version_build;
+        public string plugin_uuid;
 
         public static RaptorConfig Load()
         {
-            return JsonConvert.DeserializeObject<RaptorConfig>(File.ReadAllText("config.json"));
+            //Load
+            RaptorConfig cfg = JsonConvert.DeserializeObject<RaptorConfig>(File.ReadAllText("config.json"));
+
+            //Restore
+            if (cfg.plugin_uuid == null)
+            {
+                cfg.plugin_uuid = Guid.NewGuid().ToString();
+                cfg.Save();
+            }
+
+            return cfg;
         }
 
         public void Save()

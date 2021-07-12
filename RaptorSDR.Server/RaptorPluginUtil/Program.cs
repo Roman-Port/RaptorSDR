@@ -7,8 +7,10 @@ namespace RaptorPluginUtil
 {
     class Program
     {
-        const int VERSION_MAJOR = 0;
-        const int VERSION_MINOR = 4;
+        public const ushort VERSION_MAJOR = 0;
+        public const ushort VERSION_MINOR = 5;
+
+        public const uint VERSION_CODE = ((uint)VERSION_MAJOR << 16) | VERSION_MINOR;
         
         static int Main(string[] args)
         {

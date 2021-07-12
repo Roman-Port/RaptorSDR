@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Templates\CsTemplates\autogen.txt" />
+    <None Remove="Templates\CsTemplates\main.txt" />
     <None Remove="Templates\FrontendNpm\index.js" />
     <None Remove="Templates\FrontendNpm\package.json" />
     <None Remove="Templates\FrontendNpm\plugin.ts" />
@@ -15,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Templates\CsTemplates\autogen.txt" />
+    <EmbeddedResource Include="Templates\CsTemplates\main.txt" />
     <EmbeddedResource Include="Templates\FrontendNpm\index.js" />
     <EmbeddedResource Include="Templates\FrontendNpm\package.json" />
     <EmbeddedResource Include="Templates\FrontendNpm\plugin.ts" />

@@ -1,0 +1,22 @@
+﻿using System;
+using RaptorSDR.Server.Common;
+using RaptorSDR.Server.Common.DataProviders;
+using RomanPort.Recorder.Config;
+
+namespace {{NAMESPACE}}
+{
+    public partial class {{CLASS_NAME}} : RaptorPlugin
+    {
+
+        public {{CLASS_NAME}}(IRaptorControl control) : base(control)
+        {
+            
+        }
+
+        public override void Init()
+        {
+            //Put most stuff here
+        }
+
+    }
+}

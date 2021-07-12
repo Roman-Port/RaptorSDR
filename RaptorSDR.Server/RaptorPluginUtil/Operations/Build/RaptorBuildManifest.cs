@@ -12,6 +12,8 @@ namespace RaptorPluginUtil.Operations.Build
         public int version_major;
         public int version_minor;
         public int version_build;
+        public string plugin_uuid;
+        public uint sdk_version;
     }
 
     public class RaptorBuildManifestItem
