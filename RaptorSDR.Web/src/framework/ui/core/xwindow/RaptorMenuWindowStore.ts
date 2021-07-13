@@ -5,6 +5,7 @@ import RaptorApp from "../../../../RaptorApp";
 import RaptorPluginRegisteredWindow from "../../../plugin/RaptorPluginRegisteredWindow";
 import RaptorPluginRegisteredWindowInstance from "../../../plugin/RaptorPluginRegisteredWindowInstance";
 import RaptorPluginRegisteredWindowInstanceMount from "../../../plugin/RaptorPluginRegisteredWindowInstanceMount";
+import RaptorInfoPlugin from "../../../web/entities/info/RaptorInfoPlugin";
 
 export default class RaptorMenuWindowStore {
 
@@ -17,8 +18,8 @@ export default class RaptorMenuWindowStore {
     private registeredInstances: RaptorPluginRegisteredWindowInstance[] = [];
     private instanceMap: { [id: string]: RaptorPluginRegisteredWindowInstance } = {};
 
-    RegisterClass(info: IRaptorWindowClassInfo): RaptorPluginRegisteredWindow {
-        var e = new RaptorPluginRegisteredWindow(this.app, info);
+    RegisterClass(plugin: RaptorInfoPlugin, info: IRaptorWindowClassInfo): RaptorPluginRegisteredWindow {
+        var e = new RaptorPluginRegisteredWindow(this.app, info, plugin);
         this.registeredClasses.push(e);
         this.app.conn.Log(RaptorLogLevel.DEBUG, "RaptorMenuWindowStore", "Registered window class \"" + e.GetName() + "\".");
         return e;
@@ -50,8 +51,28 @@ export default class RaptorMenuWindowStore {
         }
     }
 
+    GetInstancesByPlugin(): RaptorPluginRegisteredWindowInstance[][] {
+        var plugins: RaptorPluginRegisteredWindowInstance[][] = [];
+        var pluginMap: { [key: string]: RaptorPluginRegisteredWindowInstance[] } = {};
+        for (var i = 0; i < this.registeredInstances.length; i++) {
+            //Gather info
+            var data = this.registeredInstances[i];
+            var plugin = data.windowClass.plugin.id;
+
+            //Create array if needed
+            if (pluginMap[plugin] == null) {
+                pluginMap[plugin] = [];
+                plugins.push(pluginMap[plugin]);
+            }
+
+            //Add it
+            pluginMap[plugin].push(data);
+        }
+        return plugins;
+    }
+
     static GetInstanceId(instance: RaptorPluginRegisteredWindowInstance): string {
-        return instance.windowClass.info.id + "." + instance.info.displayName;
+        return instance.windowClass.info.id + "." + instance.info.id;
     }
 
 }

@@ -1,3 +1,13 @@
+/* Misc */
+
+.rsys_header_sheet {
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    height: 36px !important;
+    flex-grow: 1;
+}
+
 /* Play/stop */
 
 .rsys_header_btn_play .rsys_header_button_clicker {
@@ -22,4 +32,10 @@
 
 .rsys_header_btn_settings .rsys_header_button_clicker {
     background-image: url(icons/settings_white.svg);
+}
+
+/* Customize */
+
+.rsys_header_btn_customize .rsys_header_button_clicker {
+    background-image: url(icons/customize_white.svg);
 }

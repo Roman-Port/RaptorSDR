@@ -9,7 +9,7 @@ require("./sidebar_sys.css");
 
 export default class RaptorSidebarSystemTab {
 
-    constructor(controller: RaptorSidebarSystem, container: HTMLElement, provider: () => IRaptorSettingsRegion[], footerName: string) {
+    constructor(controller: RaptorSidebarSystem, store: RaptorSettingsStore, container: HTMLElement, provider: () => IRaptorSettingsRegion[], footerName: string) {
         //Create footer
         this.footerItem = RaptorUiUtil.CreateDom("div", "rsys_sidebarsys_footer_btn", controller.footer)
             .AddClass(footerName);
@@ -28,7 +28,7 @@ export default class RaptorSidebarSystemTab {
         });
 
         //Create page
-        this.page = new RaptorSettingsPage(provider);
+        this.page = new RaptorSettingsPage(store, provider);
         this.page.MountTo(this.mount);
         this.page.Refresh();
     }

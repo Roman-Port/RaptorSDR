@@ -4,6 +4,7 @@ import RaptorApp from "../../../../RaptorApp";
 import RaptorPluginRegisteredWindowInstanceMount from "../../../plugin/RaptorPluginRegisteredWindowInstanceMount";
 import BaseChildWindowMount from "./BaseChildWindowMount";
 import BaseWindowMount from "./BaseWindowMount";
+import RaptorWindowEditorSidebar from "./editor/RaptorWindowEditorSidebar";
 import StripeWindowMount from "./mounts/StripeWindowMount";
 import RaptorMenuWindowStore from "./RaptorMenuWindowStore";
 import RaptorWindowWrapper from "./RaptorWindowWrapper";
@@ -25,6 +26,9 @@ export default class RaptorRootWindowManager extends BaseWindowMount {
 
         this.stripe = this.AddChild(new StripeWindowMount(this, true));
         this.app.mount.appendChild(this.body);
+
+        //Make sidebar
+        this.sidebar = new RaptorWindowEditorSidebar(this.body, this);
 
         //Jank. Keep thrashing until the size of the window is set and we can perform layout
         this.layoutInterval = window.setInterval(() => {
@@ -52,6 +56,7 @@ export default class RaptorRootWindowManager extends BaseWindowMount {
     private stripe: StripeWindowMount;
     private layoutInterval: number;
     private initializedViews: string[] = [];
+    private sidebar: RaptorWindowEditorSidebar;
 
     GetWidth(): number {
         return this.body.clientWidth;
@@ -151,8 +156,8 @@ export default class RaptorRootWindowManager extends BaseWindowMount {
         //Apply layout now to refresh
         this.stripe.UpdateLayout(this.GetWidth(), this.GetHeight(), 0, 0, 0, 0);
 
-        //test
-        //this.EnterEditingMode();
+        //Set up the sidebar
+        this.sidebar.Initialize();
     }
 
     EnterEditingMode() {

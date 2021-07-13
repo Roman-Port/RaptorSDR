@@ -5,16 +5,35 @@ import { RaptorSettingsTab } from "../../../../../sdk/ui/setting/RaptorSettingsT
 export default class RaptorSettingsStore {
 
     constructor() {
-
+        RaptorSettingsStore.OnPinsUpdated.Bind(() => this.OnRegionsUpdated.Fire());
     }
+
+    OnRegionsUpdated: RaptorEventDispaptcher<void> = new RaptorEventDispaptcher();
 
     private sidebarRegions: IRaptorSettingsStoreSidebarEntry[] = [];
 
     RegisterSidebarRegion(region: IRaptorSettingsRegion, tab: RaptorSettingsTab) {
+        //Add
         this.sidebarRegions.push({
             region: region,
             tab: tab
         });
+
+        //Apply
+        this.OnRegionsUpdated.Fire();
+    }
+
+    UnregisterRegion(region: IRaptorSettingsRegion) {
+        //Remove matching regions in the sidebar
+        for (var i = 0; i < this.sidebarRegions.length; i++) {
+            if (this.sidebarRegions[i].region == region) {
+                this.sidebarRegions.splice(i);
+                i--;
+            }
+        }
+
+        //Apply
+        this.OnRegionsUpdated.Fire();
     }
 
     GetProviderSidebar(tab: RaptorSettingsTab): () => IRaptorSettingsRegion[] {

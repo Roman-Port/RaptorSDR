@@ -1,0 +1,162 @@
+.rsys_xwindow_sidebar {
+    transition: left 100ms cubic-bezier(0.07, 0.74, 0.58, 1);
+    left: -300px !important;
+    background: white !important;
+}
+
+.rsys_xwindow_sidebar_header_back .rsys_header_button_clicker {
+    background-image: url(icons/back_black.svg);
+}
+
+.rsys_xwindow_sidebar_header_text {
+    margin:auto 0;
+    margin-left:5px;
+    font-size:15px;
+    color:black;
+    font-weight:600;
+}
+
+.sys_xwindow_editing .rsys_xwindow_sidebar {
+    left: 0px !important;
+}
+
+/* Region */
+
+.rsys_xwindow_sidebar_region {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-right:10px;
+}
+
+.rsys_xwindow_sidebar_region_item {
+    width:50%;
+    flex-grow:0;
+    flex-shrink:0;
+    padding-bottom:50%;
+    position: relative;
+}
+
+.rsys_xwindow_sidebar_region_item_content {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    right: 0;
+    bottom: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    background: #f5f5f5;
+    border: 1px solid #b3b3b3;
+    cursor: pointer;
+}
+
+.rsys_xwindow_sidebar_region_item_content:hover {
+    background: #e4e4e4;
+    box-shadow: 0px 0px 5px 0px rgb(0 0 0 / 10%);
+}
+
+.rsys_xwindow_sidebar_region_item_content_preview {
+    height:auto;
+    flex-grow:1;
+    margin-bottom: 5px;
+    overflow: hidden;
+    pointer-events:none;
+}
+
+.rsys_xwindow_sidebar_region_item_content_preview_box {
+    transform: scale(0.25);
+    transform-origin: top left;
+    position: relative;
+    height: 400%;
+    width: 400%;
+    display: flex;
+    align-content:center;
+    vertical-align:middle;
+}
+
+.rsys_xwindow_sidebar_region_item_content_classname {
+    font-size: 15px;
+    color: black;
+    text-align: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.rsys_xwindow_sidebar_region_item_content_instancename {
+    font-size: 15px;
+    color: grey;
+    text-align: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+/* Region header */
+
+.rsys_xwindow_sidebar_region_header {
+    width: 100%;
+    flex-grow: 1;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.rsys_xwindow_sidebar_region_header_text {
+    padding: 0 10px;
+    color: #000000;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.rsys_xwindow_sidebar_region_header_line {
+    margin: auto;
+    background: #b3b3b3;
+    flex-grow: 1;
+    height: 1px;
+}
+
+/* Modal */
+
+.rsys_xwindow_sidebar_modal {
+    position: fixed;
+    max-width: 700px;
+    background: white;
+    width: calc(100% - var(--raptor-sidebar-offset-width) - 20px - 20px - 30px);
+    left: calc(var(--raptor-sidebar-offset-width) + 20px);
+    z-index: 9;
+    padding: 15px;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    margin-top: 3px;
+    transition: opacity 70ms ease-in-out, margin 70ms cubic-bezier(0.24, 1.31, 0.74, 1.09);
+    border: 1px solid #d6d6d6;
+}
+
+.sys_xwindow_root_nonediting .rsys_xwindow_sidebar_region_item:hover .rsys_xwindow_sidebar_modal {
+    opacity: 1;
+    margin-top: -15px;
+}
+
+.rsys_xwindow_sidebar_modal_preview {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #d6d6d6;
+    display: flex;
+    align-content: center;
+    vertical-align: middle;
+    pointer-events:none;
+}
+
+.rsys_xwindow_sidebar_modal_title {
+    font-size: 15px;
+    color: black;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 10px;
+}
+
+.rsys_xwindow_sidebar_modal_text {
+    font-size: 15px;
+    color: #585858;
+}

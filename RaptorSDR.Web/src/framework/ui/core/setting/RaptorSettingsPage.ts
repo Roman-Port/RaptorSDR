@@ -9,7 +9,7 @@ require("./settings_generic.css");
 
 export default class RaptorSettingsPage {
 
-    constructor(provider: () => IRaptorSettingsRegion[]) {
+    constructor(store: RaptorSettingsStore, provider: () => IRaptorSettingsRegion[]) {
         //Configure
         this.provider = provider;
 
@@ -17,7 +17,7 @@ export default class RaptorSettingsPage {
         this.mount = RaptorUiUtil.CreateDom("div", null);
 
         //Bind
-        RaptorSettingsStore.OnPinsUpdated.Bind(() => this.Refresh());
+        store.OnRegionsUpdated.Bind(() => this.Refresh());
     }
 
     private provider: () => IRaptorSettingsRegion[];

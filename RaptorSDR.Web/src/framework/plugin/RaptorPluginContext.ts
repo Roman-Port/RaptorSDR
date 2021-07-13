@@ -80,7 +80,7 @@ export default class RaptorPluginContext implements IRaptorPluginContext {
     }
 
     RegisterWindowClass(info: IRaptorWindowClassInfo): IRaptorPluginRegisteredWindow {
-        return this.conn.app.windowStore.RegisterClass(info);
+        return this.conn.app.windowStore.RegisterClass(this.info, info);
     }
 
     RegisterComponentAudio(audio: IRaptorPluginAudio): void {

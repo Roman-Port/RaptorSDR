@@ -68,6 +68,7 @@ export default class RaptorWindowWrapper {
     private targetDropZone: IWindowDropZoneElement;
     private userWindow: IRaptorWindow;
     private classInfo: IRaptorWindowClassInfo;
+    private windowContext: RaptorWindowContext;
 
     private body: HTMLElement;
     private cover: HTMLElement;
@@ -86,7 +87,7 @@ export default class RaptorWindowWrapper {
     private static readonly WINDOW_GRABBED_HEIGHT: number = 60;
 
     ForcePickUp() {
-        RaptorUiUtil.ForceBeginDrag(this.body);
+        RaptorUiUtil.ForceBeginDrag(this.header);
     }
 
     MoveTo(mount: BaseStripeWindowMount, dom: HTMLElement) {
@@ -168,17 +169,18 @@ export default class RaptorWindowWrapper {
         if (instance == null) {
             this.ChangeTitle("Unknown Window");
             this.FatalErrorWindow("This view is no longer installed.");
+            console.warn("Failed to find window with isntance ID: " + this.info.instanceName);
             return;
         } else {
             this.ChangeTitle(instance.info.displayName);
         }
 
         //Create the window context
-        var windowContext = new RaptorWindowContext(this.root.app.conn, RaptorMenuWindowStore.GetInstanceId(instance), instance.info.info, this.info.userPersist);
+        this.windowContext = new RaptorWindowContext(this.root.app.conn, instance, this.info.userPersist);
 
         //Create the plugin code
         try {
-            this.userWindow = instance.windowClass.info.createInstance(windowContext);
+            this.userWindow = instance.windowClass.info.createInstance(this.windowContext);
         } catch (ex) {
             this.FatalErrorWindow("Failed to create view.");
             this.root.app.conn.Log(RaptorLogLevel.ERROR, "RaptorWindowWrapper", "Plugin error while trying to create window: " + ex);
@@ -265,6 +267,9 @@ export default class RaptorWindowWrapper {
         //Update plugin if needed
         if (this.userWindow != null)
             this.userWindow.DestoryWindow();
+
+        //Unbind all
+        this.windowContext.Dispose();
     }
 
 }

@@ -258,6 +258,10 @@ export default class RaptorConnection implements IRaptorConnection {
         this.app.settingStore.RegisterSidebarRegion(region, tab);
     }
 
+    UnregisterSettingsRegion(region: IRaptorSettingsRegion) {
+        this.app.settingStore.UnregisterRegion(region);
+    }
+
     async EnableAudio(audio: IRaptorPluginAudio): Promise<void> {
         //Check if audio is already running
         if (this.currentAudio != null) { this.DisableAudio(); }

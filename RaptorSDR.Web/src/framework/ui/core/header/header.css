@@ -46,6 +46,15 @@
     background-color: var(--color-accent-light);
 }
 
+.rsys_header_button_white .rsys_header_button_clicker {
+    background-color: #f5f5f5;
+    border-color: #b3b3b3;
+}
+
+.rsys_header_button_white:hover .rsys_header_button_clicker {
+    background-color: #e4e4e4;
+}
+
 .rsys_header input {
     flex-shrink: 1;
     flex-grow: 1;

@@ -1,5 +1,5 @@
 .rsys_sidebar {
-    position: absolute;
+    position: fixed;
     top: -1px;
     left: -1px;
     bottom: -1px;
