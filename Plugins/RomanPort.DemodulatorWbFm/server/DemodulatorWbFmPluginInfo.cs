@@ -17,7 +17,7 @@ namespace RomanPort.DemodulatorWbFm
         public override Guid PluginUuid => Guid.Parse("cf76ac8d-13aa-403c-936d-adaecab071c0");
         public override ushort VersionMajor => 0;
         public override ushort VersionMinor => 0;
-        public override ushort VersionBuild => 13;
+        public override ushort VersionBuild => 15;
         public override uint SdkVersion => 5;
 
     }
