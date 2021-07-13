@@ -17,7 +17,7 @@ namespace RomanPort.ViewRdsBar
         public override Guid PluginUuid => Guid.Parse("8e3ceb7b-c929-4191-83f8-ab2268dd7c2c");
         public override ushort VersionMajor => 0;
         public override ushort VersionMinor => 0;
-        public override ushort VersionBuild => 47;
+        public override ushort VersionBuild => 50;
         public override uint SdkVersion => 5;
 
     }

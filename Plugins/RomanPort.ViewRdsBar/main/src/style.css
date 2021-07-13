@@ -5,6 +5,11 @@
     height: 40px;
 }
 
+.rplug_rds_dummy {
+    margin: auto;
+    flex-grow: 1;
+}
+
 .rplug_rds_bottom {
     background: #1c1f21;
 }

@@ -2,6 +2,7 @@ import IRaptorConnection from "RaptorSdk/IRaptorConnection";
 import IRaptorWindow from "../sdk/ui/core/IRaptorWindow";
 import IRaptorWindowContext from "../sdk/ui/core/IRaptorWindowContext";
 import RaptorSize from "../sdk/ui/RaptorSize";
+import RaptorUiUtil from "../sdk/util/RaptorUiUtil";
 import IRaptorPrimitiveDataProvider from "../sdk/web/providers/IRaptorPrimitiveDataProvider";
 import PiCodeDb from "./PiCodeDb";
 import PiCodeEntry from "./PiCodeEntry";
@@ -256,6 +257,15 @@ export default class RdsWindow implements IRaptorWindow {
     private static UpdateText(text: HTMLElement, value: any) {
         if (value == null) { return; }
         text.innerText = (value as string).toString().replace("\r", "").replace("\n", "");
+    }
+
+    static CreateDummy(): HTMLElement {
+        var body = RaptorUiUtil.CreateDom("div", "rplug_rds").AddClass("rplug_rds_dummy");
+        RaptorUiUtil.CreateDom("div", "rplug_rds_text", RaptorUiUtil.CreateDom("div", "rplug_rds_element", body).AddClass("rplug_rds_ps")).innerText = "KQRS    ";
+        RaptorUiUtil.CreateDom("div", "rplug_rds_text", RaptorUiUtil.CreateDom("div", "rplug_rds_element", body).AddClass("rplug_rds_rt")).innerText = "Minnesota's Classic Rock Station 92.5 FM";
+        RaptorUiUtil.CreateDom("div", "rplug_rds_text", RaptorUiUtil.CreateDom("div", "rplug_rds_element", body).AddClass("rplug_rds_indicator")).innerText = "RDS";
+        RaptorUiUtil.CreateDom("div", "rplug_rds_text", RaptorUiUtil.CreateDom("div", "rplug_rds_element", body).AddClass("rplug_rds_indicator")).innerText = "STEREO";
+        return body;
     }
 
 }
