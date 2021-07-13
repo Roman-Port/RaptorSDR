@@ -4,6 +4,7 @@ import { SpectrumFreqDisplayMode } from "../config/SpectrumFreqDisplayMode";
 import ISpectrumInfo from "../config/SpectrumInfo";
 import SpectrumPainter from "../Util/SpectrumPainter";
 import SpectrumScaleBuilder from "../Util/SpectrumScaleBuilder";
+import ViewSpectrumPlugin from "../ViewSpectrumPlugin";
 
 export default class SpectrumPart extends BasePart {
 
@@ -38,6 +39,11 @@ export default class SpectrumPart extends BasePart {
     static readonly PADDING_BOTTOM: number = 25;
     static readonly PADDING_HEIGHT: number = SpectrumPart.PADDING_TOP + SpectrumPart.PADDING_BOTTOM;
 
+    static readonly COLOR_BACKGROUND_TOP: string = "#345375";
+    static readonly COLOR_BACKGROUND_BOTTOM: string = "#000014";
+    static readonly COLOR_FOREGROUND_TOP: string = "#70b4ff";
+    static readonly COLOR_FOREGROUND_BOTTOM: string = "#000050";
+
     Update(width: number, height: number, offset: number, range: number) {
         super.Update(width, height - SpectrumPart.PADDING_HEIGHT, offset, range);
 
@@ -46,8 +52,8 @@ export default class SpectrumPart extends BasePart {
         this.width = width;
 
         //Make gradients
-        this.foregroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, "#70b4ff", "#000050");
-        this.backgroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, "#345375", "#000014");
+        this.foregroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, SpectrumPart.COLOR_FOREGROUND_TOP, SpectrumPart.COLOR_FOREGROUND_BOTTOM);
+        this.backgroundGradient = SpectrumPainter.MakeGradient(this.mainCanvasContext, height - SpectrumPart.PADDING_HEIGHT, SpectrumPart.COLOR_BACKGROUND_TOP, SpectrumPart.COLOR_BACKGROUND_BOTTOM);
     }
 
     SettingsChanged(freq: number, sampleRate: number, offsetDb: number, rangeDb: number): void {
@@ -64,7 +70,17 @@ export default class SpectrumPart extends BasePart {
     }
 
     protected DrawFrame(frame: Float32Array): void {
+        //Paint
         SpectrumPainter.PaintSpectrum(this.mainCanvasContext, this.mainCanvas.width, this.mainCanvas.height, frame, this.foregroundGradient, this.backgroundGradient);
+
+        //If the "debug paint" mode is on, print the canvas scaled to byte (0-255). This aids with creating the thumbnails used for dummies
+        if (ViewSpectrumPlugin.CheckDebugOption("PAINT")) {
+            //SLOW!
+            var output = "";
+            for (var i = 0; i < frame.length; i++)
+                output += Math.floor(frame[i] * 255) + ", ";
+            console.log("PAINT_DEBUG / " + this.info.name + " / " + output);
+        }
     }
 
 }

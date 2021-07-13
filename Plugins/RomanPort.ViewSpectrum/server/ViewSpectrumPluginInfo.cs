@@ -17,7 +17,7 @@ namespace RomanPort.ViewSpectrum
         public override Guid PluginUuid => Guid.Parse("bdb91186-b475-4cf8-be33-88897cd457ee");
         public override ushort VersionMajor => 0;
         public override ushort VersionMinor => 0;
-        public override ushort VersionBuild => 217;
+        public override ushort VersionBuild => 223;
         public override uint SdkVersion => 5;
 
     }

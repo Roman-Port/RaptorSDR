@@ -45,5 +45,8 @@ namespace RomanPort.ViewSpectrum
 
         [JsonProperty("useCenterFreq")]
         public bool UseCenterFreq { get => !spectrum.IsHalf; }
+
+        [JsonProperty("dummySpectrum")]
+        public string DummySpectrum { get => Convert.ToBase64String(spectrum.Settings.dummySpectrum); }
     }
 }

@@ -17,5 +17,6 @@ namespace RomanPort.ViewSpectrum.API
         public int defaultSpeed = 30;
         public float? fixedIncrement = null;
         public string freqDataProvider = null;
+        public byte[] dummySpectrum = new byte[] { 0, 0, 0 };
     }
 }

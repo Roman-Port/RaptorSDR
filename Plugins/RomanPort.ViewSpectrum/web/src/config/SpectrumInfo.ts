@@ -10,5 +10,6 @@ export default interface ISpectrumInfo {
     fixedIncrement: number;
     useCenterFreq: boolean;
     freqDataProvider: string;
+    dummySpectrum: string;
 
 }
