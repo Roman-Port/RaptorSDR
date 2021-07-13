@@ -1,3 +1,4 @@
+import IRaptorSettingsRegion from "../../../../../../sdk/ui/setting/IRaptorSettingsRegion";
 import { RaptorSettingsTab } from "../../../../../../sdk/ui/setting/RaptorSettingsTab";
 import RaptorUiUtil from "../../../../../../sdk/util/RaptorUiUtil";
 import RaptorSettingsPage from "../../setting/RaptorSettingsPage";
@@ -8,11 +9,7 @@ require("./sidebar_sys.css");
 
 export default class RaptorSidebarSystemTab {
 
-    constructor(controller: RaptorSidebarSystem, container: HTMLElement, store: RaptorSettingsStore, tab: RaptorSettingsTab, footerName: string) {
-        //Configure
-        this.tab = tab;
-        this.store = store;
-
+    constructor(controller: RaptorSidebarSystem, container: HTMLElement, provider: () => IRaptorSettingsRegion[], footerName: string) {
         //Create footer
         this.footerItem = RaptorUiUtil.CreateDom("div", "rsys_sidebarsys_footer_btn", controller.footer)
             .AddClass(footerName);
@@ -31,14 +28,12 @@ export default class RaptorSidebarSystemTab {
         });
 
         //Create page
-        this.page = new RaptorSettingsPage(this.store.GetProviderSidebar(this.tab));
+        this.page = new RaptorSettingsPage(provider);
         this.page.MountTo(this.mount);
         this.page.Refresh();
     }
 
     private mount: HTMLElement;
-    private tab: RaptorSettingsTab;
-    private store: RaptorSettingsStore;
     private footerItem: HTMLElement;
 
     page: RaptorSettingsPage;
@@ -47,6 +42,7 @@ export default class RaptorSidebarSystemTab {
         if (enabled) {
             this.mount.classList.remove("rsys_sidebarsys_tab_disabled");
             this.footerItem.classList.add("rsys_sidebarsys_footer_btndown");
+            this.mount.scrollTop = 0;
         }
         else {
             this.mount.classList.add("rsys_sidebarsys_tab_disabled");

@@ -1,10 +1,13 @@
 .rsys_settings_regiontitle {
-    font-weight: 800;
-    text-transform: uppercase;
-    margin: 10px 0;
     color: white;
     display: flex;
     align-items: center;
+}
+
+.rsys_settings_regiontitle_text {
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 10px 0;
 }
 
 .rsys_settings_regiontitle_line {
@@ -13,4 +16,28 @@
     flex-grow: 1;
     background: #8a8a8a;
     margin-left: 10px;
+}
+
+.rsys_settings_regiontitle_pin {
+    background-image:url(../sidebar/system/icons/pin_inactive.svg);
+    width: 24px;
+    height: 24px;
+    background-size: 15px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 10px;
+    cursor: pointer;
+    background-color: #2c2f33;
+    flex-grow: 0;
+    flex-shrink: 0;
+    border-radius: 5px;
+    display: none;
+}
+
+.rsys_settings_regiontitle:hover .rsys_settings_regiontitle_pin {
+    display: block;
+}
+
+.rsys_settings_regiontitle_pin_active {
+    background-image: url(../sidebar/system/icons/pin.svg);
 }

@@ -18,10 +18,10 @@ export default class RaptorSidebarSystem extends RaptorSidebarBase {
 
         //Create tabs
         this.tabs = [
-            new RaptorSidebarSystemTab(this, this.content, app.settingStore, RaptorSettingsTab.GENRAL, "rsys_sidebarsys_footer_btn_general"),
-            new RaptorSidebarSystemTab(this, this.content, app.settingStore, RaptorSettingsTab.EXTRA, "rsys_sidebarsys_footer_btn_extra"),
-            new RaptorSidebarSystemTab(this, this.content, app.settingStore, RaptorSettingsTab.PLUGIN, "rsys_sidebarsys_footer_btn_plugin"),
-            new RaptorSidebarSystemTab(this, this.content, app.settingStore, RaptorSettingsTab.PINNED, "rsys_sidebarsys_footer_btn_pinned"),
+            new RaptorSidebarSystemTab(this, this.content, app.settingStore.GetProviderSidebar(RaptorSettingsTab.GENRAL), "rsys_sidebarsys_footer_btn_general"),
+            new RaptorSidebarSystemTab(this, this.content, app.settingStore.GetProviderSidebar(RaptorSettingsTab.EXTRA), "rsys_sidebarsys_footer_btn_extra"),
+            new RaptorSidebarSystemTab(this, this.content, app.settingStore.GetProviderSidebar(RaptorSettingsTab.PLUGIN), "rsys_sidebarsys_footer_btn_plugin"),
+            new RaptorSidebarSystemTab(this, this.content, app.settingStore.GetProviderPinned(), "rsys_sidebarsys_footer_btn_pinned"),
         ];
 
         //Set active

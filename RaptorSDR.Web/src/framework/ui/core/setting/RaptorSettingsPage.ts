@@ -2,6 +2,7 @@ import IRaptorSettingsComponent from "../../../../../sdk/ui/setting/IRaptorSetti
 import IRaptorSettingsRegion from "../../../../../sdk/ui/setting/IRaptorSettingsRegion";
 import RaptorUiUtil from "../../../../../sdk/util/RaptorUiUtil";
 import RaptorSettingsRegionInstance from "./RaptorSettingsRegionInstance";
+import RaptorSettingsStore from "./RaptorSettingsStore";
 
 require("./settings.css");
 require("./settings_generic.css");
@@ -14,6 +15,9 @@ export default class RaptorSettingsPage {
 
         //Create mount
         this.mount = RaptorUiUtil.CreateDom("div", null);
+
+        //Bind
+        RaptorSettingsStore.OnPinsUpdated.Bind(() => this.Refresh());
     }
 
     private provider: () => IRaptorSettingsRegion[];
