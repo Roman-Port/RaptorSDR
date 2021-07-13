@@ -14,6 +14,7 @@ namespace RomanPort.ViewSpectrum.API
         public float defaultRange = 100;
         public float defaultAttack = 0.4f;
         public float defaultDecay = 0.7f;
+        public int defaultSpeed = 30;
         public float? fixedIncrement = null;
         public string freqDataProvider = null;
     }

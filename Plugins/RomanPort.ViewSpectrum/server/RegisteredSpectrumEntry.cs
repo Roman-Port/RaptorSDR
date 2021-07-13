@@ -34,6 +34,9 @@ namespace RomanPort.ViewSpectrum
         [JsonProperty("defaultDecay")]
         public float DefaultDecay { get => spectrum.Settings.defaultDecay; }
 
+        [JsonProperty("defaultSpeed")]
+        public float DefaultSpeed { get => spectrum.Settings.defaultSpeed; }
+
         [JsonProperty("fixedIncrement")]
         public float? FixedIncrement { get => spectrum.Settings.fixedIncrement; }
 

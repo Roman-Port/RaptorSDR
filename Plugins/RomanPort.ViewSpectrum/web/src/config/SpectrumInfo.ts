@@ -6,6 +6,7 @@ export default interface ISpectrumInfo {
     defaultRange: number;
     defaultAttack: number;
     defaultDecay: number;
+    defaultSpeed: number;
     fixedIncrement: number;
     useCenterFreq: boolean;
     freqDataProvider: string;

@@ -7,5 +7,6 @@ namespace RomanPort.ViewSpectrum
 {
     public interface IInternalRegisteredSpectrum : IRegisteredSpectrum
     {
+        
     }
 }

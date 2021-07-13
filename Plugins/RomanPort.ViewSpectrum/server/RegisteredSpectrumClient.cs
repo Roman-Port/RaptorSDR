@@ -13,7 +13,7 @@ using System.Timers;
 
 namespace RomanPort.ViewSpectrum
 {
-    public unsafe class RegisteredSpectrumClient : RaptorWebStream
+    public unsafe class RegisteredSpectrumClient<T> : RaptorWebStream where T : unmanaged
     {
         public RegisteredSpectrumClient(IRaptorWebStreamClient ctx) : base(ctx)
         {
@@ -21,7 +21,9 @@ namespace RomanPort.ViewSpectrum
 
         private byte PROTOCOL_VERSION = 1;
 
-        private IInternalRegisteredSpectrum spectrum;
+        private BaseRegisteredSpectrum<T> spectrum;
+        private IFftGenerator<T> generator;
+        private FftStreamBuffer<T> fftStream;
         private bool useHd; //When this is true, we use shorts instead of bytes when sending samples
 
         private int settingOutputSize;
@@ -37,20 +39,12 @@ namespace RomanPort.ViewSpectrum
         private int outputSize; //thread safe, not changed until we're able to
         private int framesSinceLastFull;
 
-        private object rawPowerLock = new object();
-        private UnsafeBuffer rawPowerBuffer;
-        private float* rawPowerPtr;
-        private int rawPowerSize;
-
+        private UnsafeBuffer resizedBuffer;
+        private float* resizedBufferPtr;
         private UnsafeBuffer powerBuffer;
         private float* powerBufferPtr;
 
-        private UnsafeBuffer resizedBuffer;
-        private float* resizedBufferPtr;
-
         private byte[] outputBuffer;
-
-        private Timer updateTimer;
 
         private const int PACKET_HEADER_LEN = 8;
 
@@ -72,6 +66,7 @@ namespace RomanPort.ViewSpectrum
             UpdateSetting(payload["range"], 1f, 10000f, ref settingSampleRange);
             UpdateSetting(payload["zoom"], 0f, 1f, ref settingZoom);
             UpdateSetting(payload["center"], 0f, 1f, ref settingZoomCenter);
+            UpdateSetting(payload["speed"], 1, 60, ref settingFps);
 
             //Update token. This is simply just an optional addition so that the client can know when their settings were applied
             settingToken = (ushort)(payload.TryGetValue("token", out JToken token) ? token : 0);
@@ -88,19 +83,46 @@ namespace RomanPort.ViewSpectrum
 
         }
 
-        public void Initialize(IInternalRegisteredSpectrum spectrum)
+        public void Initialize(BaseRegisteredSpectrum<T> spectrum)
         {
             //Configure
             this.spectrum = spectrum;
+            this.generator = spectrum.CreateGenerator();
 
-            //Start timer
-            updateTimer = new Timer(1000.0 / settingFps);
-            updateTimer.AutoReset = true;
-            updateTimer.Elapsed += (object sender, ElapsedEventArgs e) => ProcessFrame();
-            updateTimer.Start();
+            //Set up FFT stream
+            fftStream = new FftStreamBuffer<T>(generator.InputFftSize, 0);
+            fftStream.OnFrameExported += FftStream_OnFrameExported;
         }
 
-        private void ProcessFrame()
+        public void ProcessIncoming(T* ptr, int count, int sampleRate)
+        {
+            //Ensure it is set up
+            fftStream.FrameSize = sampleRate / settingFps;
+            
+            //Write to stream
+            fftStream.Write(ptr, count);
+        }
+
+        /// <summary>
+        /// Called when we have enough samples to process a frame
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="count"></param>
+        private void FftStream_OnFrameExported(T* ptr, int count)
+        {
+            //Send to processor
+            generator.ProcessFrame(ptr);
+
+            //Encode and send frame
+            ProcessFrame(generator.PowerPtr, generator.OutputFftSize);
+        }
+
+        /// <summary>
+        /// Resizes, smoothens, and encodes the frame, then sends it
+        /// </summary>
+        /// <param name="rawPowerPtr"></param>
+        /// <param name="rawPowerSize"></param>
+        private void ProcessFrame(float* rawPowerPtr, int rawPowerSize)
         {
             //If the requested buffer size is 0, stop
             if (settingOutputSize == 0)
@@ -121,53 +143,25 @@ namespace RomanPort.ViewSpectrum
                 outputBuffer = new byte[PACKET_HEADER_LEN + (outputSize * (useHd ? 2 : 1))];
             }
 
-            //Determine interpolation
-            float interpolation = Math.Min(1, (float)spectrum.SampleRate / (spectrum.Settings.fftSize * settingFps) / (spectrum.IsHalf ? 2 : 1));
-
-            //Validate
-            if (rawPowerSize == 0)
-                return;
-
-            //Apply transformations
-            lock (rawPowerLock)
+            //Every once in a while send a frame that isn't zoomed for the "unzoomed" thumbnail
+            if (framesSinceLastFull == 0 || ++framesSinceLastFull == 30)
             {
-                //Every once in a while send a frame that isn't zoomed for the "unzoomed" thumbnail
-                if (framesSinceLastFull == 0 || ++framesSinceLastFull == 30)
-                {
-                    FFTUtil.ResizePower(rawPowerPtr, resizedBufferPtr, rawPowerSize, outputSize);
-                    EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_FULL, resizedBufferPtr, spectrum.IsHalf ? spectrum.SampleRate / 2 : spectrum.SampleRate);
-                    framesSinceLastFull = 1;
-                }
-
-                //Apply zoom
-                int zoomSize = ProcessZoom(rawPowerPtr, rawPowerSize, out float* zoomedPtr);
-
-                //Resize to output
-                FFTUtil.ResizePower(zoomedPtr, resizedBufferPtr, zoomSize, outputSize);
+                FFTUtil.ResizePower(rawPowerPtr, resizedBufferPtr, rawPowerSize, outputSize);
+                EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_FULL, resizedBufferPtr, spectrum.IsHalf ? spectrum.SampleRate / 2 : spectrum.SampleRate);
+                framesSinceLastFull = 1;
             }
 
+            //Apply zoom
+            int zoomSize = ProcessZoom(rawPowerPtr, rawPowerSize, out float* zoomedPtr);
+
+            //Resize to output
+            FFTUtil.ResizePower(zoomedPtr, resizedBufferPtr, zoomSize, outputSize);
+
             //Apply smoothening
-            FFTUtil.ApplySmoothening(powerBufferPtr, resizedBufferPtr, outputSize, settingAttack * interpolation, settingDecay * interpolation);
+            FFTUtil.ApplySmoothening(powerBufferPtr, resizedBufferPtr, outputSize, settingAttack, settingDecay);
 
             //Send frame
             EncodeSendFrame(SpectrumStreamOpcode.OP_FRAME_ZOOM, powerBufferPtr, spectrum.IsHalf ? spectrum.SampleRate / 2 : spectrum.SampleRate);            
-        }
-
-        public void NewFftFrameProcessed(float* power, int size)
-        {
-            lock(rawPowerLock)
-            {
-                //If it is a different size, reallocate
-                if (size != rawPowerSize || rawPowerBuffer == null)
-                {
-                    rawPowerBuffer?.Dispose();
-                    rawPowerBuffer = UnsafeBuffer.Create(size, out rawPowerPtr);
-                    rawPowerSize = size;
-                }
-
-                //Copy
-                Utils.Memcpy(rawPowerPtr, power, size * sizeof(float));
-            }
         }
 
         private int ProcessZoom(float* inputPtr, int inputSize, out float* ptr)
@@ -236,11 +230,11 @@ namespace RomanPort.ViewSpectrum
             SendMessage(outputBuffer, outputBuffer.Length);
         }
 
-        private void WriteHeaderValue<T>(int offset, T value) where T : unmanaged
+        private void WriteHeaderValue<ValueType>(int offset, ValueType value) where ValueType : unmanaged
         {
             //Get pointer as bytes as well as size
             byte* ptr = (byte*)&value;
-            int size = sizeof(T);
+            int size = sizeof(ValueType);
 
             //Write in little endian, regardless of the current system's endianess
             if(BitConverter.IsLittleEndian)

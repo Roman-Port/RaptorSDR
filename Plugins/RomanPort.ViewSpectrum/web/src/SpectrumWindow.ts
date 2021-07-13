@@ -39,6 +39,7 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
         this.SettingDecay = new SpectrumDataProvider(this, "decay", "decay", this.info.defaultDecay);
         this.SettingZoom = new SpectrumDataProvider(this, "zoom", "zoom", 0.5);
         this.SettingCenter = new SpectrumDataProvider(this, "center", "center", 0.5);
+        this.SettingSpeed = new SpectrumDataProvider(this, "speed", "speed", this.info.defaultSpeed);
 
         //Create "fake" data providers for the sample rate
         this.SampleRate = {
@@ -73,6 +74,7 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
         var settings = ctx.CreateSettingsRegion(this.info.name + " Settings", "settings")
             .AddOptionRange("Offset", this.SettingOffset, 0, 200)
             .AddOptionRange("Range", this.SettingRange, 1, 200)
+            .AddOptionRange("Speed", this.SettingSpeed, 1, 60)
             .AddOptionRange("Attack", new SpectrumDataProviderScaler(this.SettingAttack, 100), 0, 100)
             .AddOptionRange("Decay", new SpectrumDataProviderScaler(this.SettingDecay, 100), 0, 100)
             .Build();
@@ -91,6 +93,7 @@ export default class SpectrumWindow implements IRaptorWindow, ISpectrumDataProvi
     SettingDecay: IRaptorConfigurable<number>;
     SettingZoom: IRaptorConfigurable<number>;
     SettingCenter: IRaptorConfigurable<number>;
+    SettingSpeed: IRaptorConfigurable<number>;
     SampleRate: IRaptorConfigurable<number>;
     SampleRateZoomed: IRaptorConfigurable<number>;
 

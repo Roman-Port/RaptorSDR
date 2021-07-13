@@ -23,8 +23,8 @@ namespace RomanPort.ViewSpectrum
             //Register built-in main FFT
             mainSpectrum = RegisterSpectrumComplex(Id.Then("MainFFT"), new SpectrumSettings
             {
-                name = "Main FFT",
-                fftSize = 32768*2,
+                name = "Main Spectrum",
+                fftSize = 32768,
                 defaultOffset = 20,
                 defaultRange = 80,
                 freqDataProvider = "RaptorSDR.Radio.CenterFreq"
